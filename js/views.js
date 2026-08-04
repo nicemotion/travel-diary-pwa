@@ -40,6 +40,25 @@ function openLightbox(url) {
   document.body.appendChild(overlay);
 }
 
+// reverse geocoding: turns gps coordinates into a country/city name, via
+// OpenStreetMap's free Nominatim API. Best-effort only — if there's no
+// connection or the request fails, we just leave the fields as they were
+// (same graceful fallback already used for gps itself).
+async function reverseGeocode(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const addr = data.address || {};
+    const country = addr.country || '';
+    const city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || '';
+    return (country || city) ? { country, city } : null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- Home ----------
 
 const RADIUS_OPTIONS_KM = [1, 4, 10];
@@ -104,6 +123,7 @@ export async function viewHome() {
   return {
     title: 'Travel Diary',
     body,
+    actions: `<a href="./Travel_Diary%20quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
     mount(container) {
       const seedBtn = container.querySelector('#seed-btn');
       if (seedBtn) {
@@ -599,12 +619,12 @@ export async function viewEntryForm(params) {
       </select>
 
       <label>country</label>
-      <input type="text" name="country" required value="${escapeHtml(isEdit ? countryName : defaultCountry)}" placeholder="e.g. Thailand">
-      ${!isEdit && defaultCountry ? hint('prefilled from your last entry, editable if you moved') : ''}
+      <input type="text" name="country" id="country-input" required value="${escapeHtml(isEdit ? countryName : defaultCountry)}" placeholder="e.g. Thailand">
+      <p class="hint" id="country-hint">${!isEdit && defaultCountry ? '*prefilled from your last entry, editable if you moved' : ''}</p>
 
       <label>city</label>
-      <input type="text" name="city" value="${escapeHtml(isEdit ? cityValue : defaultCity)}" placeholder="e.g. Bangkok">
-      ${!isEdit && defaultCity ? hint('prefilled from your last entry, editable if you moved') : ''}
+      <input type="text" name="city" id="city-input" value="${escapeHtml(isEdit ? cityValue : defaultCity)}" placeholder="e.g. Bangkok">
+      <p class="hint" id="city-hint">${!isEdit && defaultCity ? '*prefilled from your last entry, editable if you moved' : ''}</p>
 
       <label>tags (comma separated)</label>
       <div style="position:relative;">
@@ -643,11 +663,30 @@ export async function viewEntryForm(params) {
       const gpsHint = container.querySelector('#gps-hint');
 
       if (!isEdit) {
-        getLocation().then((loc) => {
+        const countryInput = form.querySelector('#country-input');
+        const cityInput = form.querySelector('#city-input');
+        const countryHint = form.querySelector('#country-hint');
+        const cityHint = form.querySelector('#city-hint');
+
+        getLocation().then(async (loc) => {
           if (loc && !latInput.value && !lonInput.value) {
             latInput.value = loc.lat.toFixed(6);
             lonInput.value = loc.lon.toFixed(6);
             gpsHint.textContent = '*prefilled from current gps, editable';
+
+            const geo = await reverseGeocode(loc.lat, loc.lon);
+            if (geo) {
+              // only overwrite if the user hasn't already typed something themselves
+              // in the brief moment while we were waiting for the network reply
+              if (geo.country && countryInput.value === defaultCountry) {
+                countryInput.value = geo.country;
+                countryHint.textContent = '*detected from your current location, editable';
+              }
+              if (geo.city && cityInput.value === defaultCity) {
+                cityInput.value = geo.city;
+                cityHint.textContent = '*detected from your current location, editable';
+              }
+            }
           } else if (!loc) {
             gpsHint.textContent = '*gps not available, enter location manually if you like';
           }
