@@ -3,6 +3,7 @@
 import { route, startRouter } from './router.js';
 import {
   viewHome, viewSearch,
+  viewMap,
   viewTripsList, viewTripForm, viewTripDetail, viewTripTags,
   viewCountriesList, viewCountryDetail,
   viewTagsList,
@@ -15,6 +16,7 @@ import {
 // quelle con parametro (es. /trips/:id), altrimenti ':id' catturerebbe 'new'
 route('/', viewHome);
 route('/search', viewSearch);
+route('/map', viewMap);
 route('/backup', viewBackup);
 
 route('/trips', viewTripsList);

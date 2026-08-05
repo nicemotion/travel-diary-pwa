@@ -105,6 +105,14 @@ body {
 .trip-active .label { font-size: 11px; color: #cfe0ec; margin: 0; }
 .trip-active .name { font-size: 14px; color: #fff; margin: 2px 0 0; font-weight: bold; }
 
+.backup-reminder {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--surface-muted); border: 1px solid var(--border); border-left: 4px solid var(--base);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;
+}
+.backup-reminder .label { font-size: 11px; color: var(--text-muted); margin: 0; }
+.backup-reminder .name { font-size: 13px; color: var(--text-dark); margin: 2px 0 0; font-weight: bold; }
+
 /* ---------- card ---------- */
 .card {
   border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px;

@@ -11,6 +11,7 @@ import { getLocation } from './geolocation.js';
 import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
 import { createOfflineTileLayer, planDownloadAroundPoints, downloadTiles } from './tiles.js';
+import { noteContentAdded, noteBackupCompleted, snoozeReminder, getReminderState } from './backupReminder.js';
 
 // Leaflet's Icon.Default automatically prepends a detected/merged imagePath
 // in front of iconUrl/shadowUrl, which is fragile with a vendored (non-CDN)
@@ -167,11 +168,33 @@ function nearbyListHtml(entries, countryById, loc, radiusKm) {
   }).join('');
 }
 
+function backupReminderHtml(state) {
+  if (!state.due) return '';
+  let msg;
+  if (state.neverBackedUp) {
+    msg = `${state.entriesSince} new thing${state.entriesSince === 1 ? '' : 's'} saved, no backup yet`;
+  } else if (state.entriesSince >= 10) {
+    msg = `${state.entriesSince} new places/notes since your last backup`;
+  } else {
+    msg = `it's been ${state.daysSince} day${state.daysSince === 1 ? '' : 's'} since your last backup`;
+  }
+  return `
+    <div class="backup-reminder" id="backup-reminder">
+      <div><p class="label">backup reminder</p><p class="name">${escapeHtml(msg)}</p></div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <a href="#/backup" class="badge accent" style="text-decoration:none;">backup now</a>
+        <button type="button" id="backup-reminder-snooze" class="badge" style="border:none; cursor:pointer;">later</button>
+      </div>
+    </div>
+  `;
+}
+
 export async function viewHome() {
   const [trips, entries, countries] = await Promise.all([getAll('trips'), getAll('entries'), getAll('countries')]);
   const activeTrip = trips.find((t) => t.is_active);
   const countryById = Object.fromEntries(countries.map((c) => [c.id, c]));
   const loc = await getLocation();
+  const reminder = getReminderState();
 
   const body = `
     <div style="position:relative;">
@@ -186,6 +209,8 @@ export async function viewHome() {
     <a href="#/trips/${activeTrip.id}" class="trip-active" style="text-decoration:none;">
       <div><p class="label">active trip</p><p class="name">${escapeHtml(activeTrip.name)}</p></div>
     </a>` : ''}
+
+    ${backupReminderHtml(reminder)}
 
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
       <p class="section-label" id="nearby-label" style="margin:0;">${loc ? 'nearby' : 'recent (no gps available)'}</p>
@@ -202,8 +227,16 @@ export async function viewHome() {
   return {
     title: 'Travel Diary',
     body,
-    actions: `<a href="./Trip_Diary%20quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
+    actions: `<a href="./Trip_Diary_quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
     mount(container) {
+      const snoozeBtn = container.querySelector('#backup-reminder-snooze');
+      if (snoozeBtn) {
+        snoozeBtn.addEventListener('click', () => {
+          snoozeReminder();
+          container.querySelector('#backup-reminder')?.remove();
+        });
+      }
+
       const seedBtn = container.querySelector('#seed-btn');
       if (seedBtn) {
         seedBtn.addEventListener('click', async () => {
@@ -283,6 +316,123 @@ export async function viewSearch(params, query) {
       });
       run(initialQ);
       input.focus();
+    },
+  };
+}
+
+// ---------- Map tab ----------
+
+export async function viewMap(params, query) {
+  const tripId = query.trip ? Number(query.trip) : null;
+  const countryId = query.country ? Number(query.country) : null;
+  const isScoped = tripId != null || countryId != null;
+
+  const [allEntries, trips, countries] = await Promise.all([getAll('entries'), getAll('trips'), getAll('countries')]);
+  const countryById = Object.fromEntries(countries.map((c) => [c.id, c]));
+
+  let pool = allEntries.filter((e) => e.lat != null && e.lon != null);
+  let scopeLabel = null;
+  if (tripId != null) {
+    pool = pool.filter((e) => e.trip_id === tripId);
+    scopeLabel = trips.find((t) => t.id === tripId)?.name || 'trip';
+  } else if (countryId != null) {
+    pool = pool.filter((e) => e.country_id === countryId);
+    scopeLabel = countryById[countryId]?.name || 'country';
+  }
+
+  const body = `
+    ${isScoped
+      ? `<p class="section-label">${escapeHtml(scopeLabel)} &middot; ${pool.length} place${pool.length === 1 ? '' : 's'} on the map</p>`
+      : `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+          <p class="section-label" id="map-mode-label" style="margin:0;">nearby</p>
+          <div style="display:flex; gap:4px;">
+            ${RADIUS_OPTIONS_KM.map((km) => `<button type="button" class="radius-btn badge" data-km="${km}">${km}km</button>`).join('')}
+            <button type="button" class="radius-btn badge" data-km="all">all</button>
+          </div>
+        </div>`}
+    <div class="leaflet-map-wrap"><div id="map-tab-map" class="leaflet-map" style="height: 62vh;"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
+    <p id="map-empty-hint" class="empty-state" style="display:none;">no places with gps ${isScoped ? `in ${escapeHtml(scopeLabel)}` : 'nearby \u2014 try a bigger radius or "all"'}.</p>
+  `;
+
+  return {
+    title: isScoped ? scopeLabel : 'Map',
+    body,
+    async mount(container) {
+      const mapEl = container.querySelector('#map-tab-map');
+      const map = L.map(mapEl, { attributionControl: true }).setView([20, 0], 2);
+      createOfflineTileLayer().addTo(map);
+
+      const wrapEl = container.querySelector('.leaflet-map-wrap');
+      const fsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
+      if (fsBtn && wrapEl) setupMapFullscreen(map, wrapEl, fsBtn);
+
+      const markersLayer = L.layerGroup().addTo(map);
+      const emptyHint = container.querySelector('#map-empty-hint');
+
+      function renderMarkers(items) {
+        markersLayer.clearLayers();
+        if (!items.length) {
+          emptyHint.style.display = 'block';
+          return;
+        }
+        emptyHint.style.display = 'none';
+        const latlngs = [];
+        for (const e of items) {
+          const marker = L.marker([e.lat, e.lon], { icon: pinIcon }).addTo(markersLayer);
+          marker.bindPopup(`<strong>${escapeHtml(e.title)}</strong><br><a href="#/entry/${e.id}">open</a>`);
+          latlngs.push([e.lat, e.lon]);
+        }
+        if (latlngs.length === 1) {
+          map.setView(latlngs[0], 15);
+        } else {
+          map.fitBounds(latlngs, { padding: [30, 30] });
+        }
+      }
+
+      if (isScoped) {
+        renderMarkers(pool);
+        return;
+      }
+
+      const modeLabel = container.querySelector('#map-mode-label');
+      const loc = await getLocation();
+
+      function applyRadius(km) {
+        if (!loc) { renderMarkers(pool); return; }
+        const within = pool.filter((e) => haversineMeters(loc.lat, loc.lon, e.lat, e.lon) <= km * 1000);
+        renderMarkers(within);
+      }
+
+      const radiusBtns = container.querySelectorAll('.radius-btn');
+      function selectBtn(km) {
+        radiusBtns.forEach((b) => b.classList.toggle('accent', b.dataset.km === String(km)));
+      }
+
+      if (loc) {
+        modeLabel.textContent = 'nearby';
+        selectBtn(DEFAULT_RADIUS_KM);
+        applyRadius(DEFAULT_RADIUS_KM);
+      } else {
+        modeLabel.textContent = 'all places (no gps available)';
+        selectBtn('all');
+        renderMarkers(pool);
+      }
+
+      radiusBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectBtn(btn.dataset.km);
+          if (btn.dataset.km === 'all') {
+            modeLabel.textContent = 'all places';
+            renderMarkers(pool);
+          } else if (loc) {
+            modeLabel.textContent = 'nearby';
+            applyRadius(Number(btn.dataset.km));
+          } else {
+            modeLabel.textContent = 'all places (no gps available)';
+            renderMarkers(pool);
+          }
+        });
+      });
     },
   };
 }
@@ -435,7 +585,9 @@ export async function viewTripDetail(params, query) {
       </div>
       <p class="section-label">${entries.length} entries</p>
       ${listHtml}
-      ${entries.some((e) => e.lat && e.lon) ? `<button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this trip</button>` : ''}
+      ${entries.some((e) => e.lat && e.lon) ? `
+      <a href="#/map${buildQuery({ trip: tripId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
+      <button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this trip</button>` : ''}
     </div>
   `;
 
@@ -573,7 +725,9 @@ export async function viewCountryDetail(params, query) {
       </div>
       <p class="section-label">${entries.length} entries &middot; all trips</p>
       ${listHtml}
-      ${entries.some((e) => e.lat && e.lon) ? `<button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this country</button>` : ''}
+      ${entries.some((e) => e.lat && e.lon) ? `
+      <a href="#/map${buildQuery({ country: countryId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
+      <button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this country</button>` : ''}
     </div>
   `;
 
@@ -928,6 +1082,7 @@ export async function viewEntryForm(params) {
           createdAt = new Date().toISOString().slice(0, 16);
           data.created_at = createdAt;
           id = await add('entries', data);
+          noteContentAdded();
         }
         await setEntryTags(id, tagNames);
 
@@ -944,6 +1099,7 @@ export async function viewEntryForm(params) {
               photo_blob: hasPhoto ? firstPhoto : null,
               timestamp: createdAt,
             });
+            noteContentAdded();
           }
         }
 
@@ -1011,7 +1167,10 @@ export async function viewAnnotationForm(params) {
           timestamp: isEdit ? annotation.timestamp : new Date().toISOString().slice(0, 16),
         };
         if (isEdit) await put('annotations', { ...annotation, ...data });
-        else await add('annotations', data);
+        else {
+          await add('annotations', data);
+          noteContentAdded();
+        }
         navigate('/entry/' + entryId);
       });
     },
@@ -1091,6 +1250,7 @@ export async function viewBackup() {
         exportBtn.textContent = 'preparing...';
         try {
           await exportBackup();
+          noteBackupCompleted();
         } finally {
           exportBtn.innerHTML = `${icon('external')} download backup (.zip)`;
         }
@@ -1105,6 +1265,7 @@ export async function viewBackup() {
         importBtn.textContent = 'restoring...';
         try {
           await importBackup(file);
+          noteBackupCompleted();
           alert('Backup restored successfully.');
           navigate('/');
         } catch (err) {

@@ -82,6 +82,7 @@ function updateBottomNav(path) {
     const group = a.getAttribute('data-nav');
     const isActive =
       (group === 'diario' && path === '/') ||
+      (group === 'mappa' && path.startsWith('/map')) ||
       (group === 'viaggi' && path.startsWith('/trips')) ||
       (group === 'esplora' && (path.startsWith('/countries') || path.startsWith('/tags')));
     a.classList.toggle('active', isActive);
