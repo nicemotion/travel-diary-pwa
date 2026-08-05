@@ -113,6 +113,9 @@ body {
 }
 .card .title { font-size: 14px; margin: 0 0 2px; color: var(--text-dark); font-weight: bold; }
 .card .meta { font-size: 12px; color: var(--text-muted); margin: 0; }
+.match-detail { font-size: 11px; margin-top: 2px; display: inline-block; }
+.match-detail.match-tag { color: var(--base); font-weight: bold; }
+.match-detail.match-text { color: var(--text-muted); font-style: italic; }
 
 .section-label {
   font-size: 12px; color: var(--text-muted); margin: 8px 0;
@@ -128,6 +131,38 @@ body {
   display: flex; align-items: center; justify-content: center;
   color: var(--text-muted); font-size: 12px; margin-bottom: 8px;
 }
+
+/* Leaflet needs an explicit height on its container, otherwise it collapses
+   to 0px and the map never renders — this is the #1 Leaflet gotcha. */
+.leaflet-map {
+  height: 200px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: var(--surface-muted);
+  z-index: 0;
+}
+
+.leaflet-map-wrap { position: relative; }
+.leaflet-map-wrap .leaflet-map { margin-bottom: 8px; }
+
+.map-fullscreen-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 1000;
+  width: 34px; height: 34px; margin: 0; padding: 0;
+  border-radius: 8px; border: none; background: #fff;
+  color: var(--text-dark); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35); cursor: pointer;
+}
+.map-fullscreen-btn svg { width: 16px; height: 16px; }
+.map-fullscreen-btn:hover { background: var(--surface-muted); }
+
+/* true fullscreen: escapes the app's 480px column since position:fixed is
+   relative to the viewport (the .app wrapper has no transform to trap it) */
+.leaflet-map.map-fullscreen {
+  position: fixed; inset: 0; z-index: 2000;
+  width: 100vw; height: 100vh;
+  border-radius: 0; margin-bottom: 0;
+}
+body.map-fullscreen-active { overflow: hidden; }
 
 .annotation {
   display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--surface-muted);

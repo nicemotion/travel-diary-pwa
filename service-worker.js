@@ -1,13 +1,19 @@
 // service-worker.js — precache di tutto lo shell dell'app.
 // Cambia CACHE_NAME ogni volta che aggiorni i file, così i client scaricano la nuova versione.
 
-const CACHE_NAME = 'travel-diary-v4';
+const CACHE_NAME = 'travel-diary-v5';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
+  './css/vendor/leaflet.css',
+  './css/vendor/images/marker-icon.png',
+  './css/vendor/images/marker-icon-2x.png',
+  './css/vendor/images/marker-shadow.png',
+  './css/vendor/images/layers.png',
+  './css/vendor/images/layers-2x.png',
   './js/app.js',
   './js/router.js',
   './js/views.js',
@@ -16,6 +22,8 @@ const ASSETS = [
   './js/icons.js',
   './js/geolocation.js',
   './js/seed.js',
+  './js/tiles.js',
+  './js/vendor/leaflet.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
 ];

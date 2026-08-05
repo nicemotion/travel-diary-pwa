@@ -10,6 +10,58 @@ import { navigate, buildQuery } from './router.js';
 import { getLocation } from './geolocation.js';
 import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
+import { createOfflineTileLayer, planDownloadAroundPoints, downloadTiles } from './tiles.js';
+
+// Leaflet's Icon.Default automatically prepends a detected/merged imagePath
+// in front of iconUrl/shadowUrl, which is fragile with a vendored (non-CDN)
+// setup and singleton timing. Sidestepping it entirely: a plain L.icon()
+// with explicit paths, passed directly to each marker below. L.icon() does
+// NOT do any path prepending, so this can't double up.
+const pinIcon = L.icon({
+  iconUrl: './css/vendor/images/marker-icon.png',
+  iconRetinaUrl: './css/vendor/images/marker-icon-2x.png',
+  shadowUrl: './css/vendor/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41],
+});
+
+// Wires a button to toggle a Leaflet map container between its normal inline
+// size and a true fullscreen overlay (position: fixed, covers the viewport
+// regardless of the app's 480px max-width column). Leaflet needs
+// invalidateSize() after any container resize, with a short delay so it
+// runs after the CSS class change has actually taken effect.
+function setupMapFullscreen(map, mapEl, btn) {
+  function isFullscreen() {
+    return mapEl.classList.contains('map-fullscreen');
+  }
+  function exitFullscreen() {
+    if (!isFullscreen()) return;
+    mapEl.classList.remove('map-fullscreen');
+    document.body.classList.remove('map-fullscreen-active');
+    btn.innerHTML = icon('expand');
+    btn.title = 'view fullscreen';
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  function onKeydown(e) {
+    if (e.key === 'Escape') exitFullscreen();
+  }
+  btn.addEventListener('click', () => {
+    if (isFullscreen()) {
+      exitFullscreen();
+      document.removeEventListener('keydown', onKeydown);
+    } else {
+      mapEl.classList.add('map-fullscreen');
+      document.body.classList.add('map-fullscreen-active');
+      btn.innerHTML = icon('collapse');
+      btn.title = 'exit fullscreen';
+      document.addEventListener('keydown', onKeydown);
+      setTimeout(() => map.invalidateSize(), 50);
+    }
+  });
+}
 
 function escapeHtml(s) {
   const div = document.createElement('div');
@@ -18,7 +70,22 @@ function escapeHtml(s) {
 }
 
 function matchBadge(type) {
-  return type === 'tag' ? '<span class="badge accent">tag</span>' : '<span class="badge">text</span>';
+  if (type === 'tag') return '<span class="badge accent">tag</span>';
+  if (type === 'title') return '';
+  return '<span class="badge">text</span>';
+}
+
+// shows what actually matched: the tag name for a tag match, a short quoted
+// snippet for a text match. A title match needs nothing extra — the title
+// is already shown right above it.
+function matchDetail(e) {
+  if (e.match_type === 'tag' && e.match_value) {
+    return `<br><span class="match-detail match-tag">#${escapeHtml(e.match_value)}</span>`;
+  }
+  if (e.match_type === 'text' && e.match_value) {
+    return `<br><span class="match-detail match-text">&ldquo;${escapeHtml(e.match_value)}&rdquo;</span>`;
+  }
+  return '';
 }
 
 function hint(text) {
@@ -123,7 +190,7 @@ export async function viewHome() {
   return {
     title: 'Travel Diary',
     body,
-    actions: `<a href="./Travel_Diary%20quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
+    actions: `<a href="./Trip_Diary%20quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
     mount(container) {
       const seedBtn = container.querySelector('#seed-btn');
       if (seedBtn) {
@@ -158,7 +225,7 @@ export async function viewHome() {
             const place = e.city ? `${escapeHtml(e.city)}, ${escapeHtml(e.country_name)}` : escapeHtml(e.country_name);
             return `<a href="#/entry/${e.id}" class="tag-suggestion" style="display:block; text-decoration:none; color:inherit;">
               <strong>${escapeHtml(e.title)}</strong> ${matchBadge(e.match_type)}
-              <br><span style="font-size:11px; color:var(--text-muted);">${place}</span></a>`;
+              <br><span style="font-size:11px; color:var(--text-muted);">${place}</span>${matchDetail(e)}</a>`;
           }).join('');
           box.style.display = 'block';
         }, 200);
@@ -195,7 +262,7 @@ export async function viewSearch(params, query) {
           return;
         }
         results.innerHTML = `<p class="section-label">${items.length} results for "${escapeHtml(q)}"</p>` +
-          items.map((e) => `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.country_name)} &middot; ${escapeHtml(e.created_at)}</p></a>`).join('');
+          items.map((e) => `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.country_name)} &middot; ${escapeHtml(e.created_at)}</p>${matchDetail(e)}</a>`).join('');
       }
       let timer;
       input.addEventListener('input', () => {
@@ -356,6 +423,7 @@ export async function viewTripDetail(params, query) {
       </div>
       <p class="section-label">${entries.length} entries</p>
       ${listHtml}
+      ${entries.some((e) => e.lat && e.lon) ? `<button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this trip</button>` : ''}
     </div>
   `;
 
@@ -365,6 +433,21 @@ export async function viewTripDetail(params, query) {
       <a href="#/trips/${tripId}/tags" class="icon-btn" title="tags for this trip" aria-label="tags for this trip">${icon('tag')}</a>`,
     body,
     mount(container) {
+      const downloadBtn = container.querySelector('#download-map-btn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+          downloadBtn.disabled = true;
+          const points = entries.filter((e) => e.lat && e.lon).map((e) => ({ lat: e.lat, lon: e.lon }));
+          const tiles = planDownloadAroundPoints(points);
+          downloadBtn.textContent = `downloading 0 of ${tiles.length} tiles...`;
+          await downloadTiles(tiles, (done, total) => {
+            downloadBtn.textContent = `downloading ${done} of ${total} tiles...`;
+          });
+          downloadBtn.textContent = `${tiles.length} tiles ready offline`;
+          downloadBtn.disabled = false;
+        });
+      }
+
       const input = container.querySelector('#trip-search-input');
       const resultsBox = container.querySelector('#trip-search-results');
       const original = container.querySelector('#trip-original');
@@ -374,7 +457,7 @@ export async function viewTripDetail(params, query) {
         if (!items.length) { resultsBox.innerHTML = '<p class="empty-state">no results in this trip.</p>'; return; }
         resultsBox.innerHTML = items.map((e) => {
           const place = e.city ? `${escapeHtml(e.city)}, ${escapeHtml(e.country_name)}` : escapeHtml(e.country_name);
-          return `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.created_at)} &middot; ${place}</p></a>`;
+          return `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.created_at)} &middot; ${place}</p>${matchDetail(e)}</a>`;
         }).join('');
       }
       function onInput() {
@@ -478,6 +561,7 @@ export async function viewCountryDetail(params, query) {
       </div>
       <p class="section-label">${entries.length} entries &middot; all trips</p>
       ${listHtml}
+      ${entries.some((e) => e.lat && e.lon) ? `<button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this country</button>` : ''}
     </div>
   `;
 
@@ -485,6 +569,21 @@ export async function viewCountryDetail(params, query) {
     title: country ? country.name : 'Country',
     body,
     mount(container) {
+      const downloadBtn = container.querySelector('#download-map-btn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+          downloadBtn.disabled = true;
+          const points = entries.filter((e) => e.lat && e.lon).map((e) => ({ lat: e.lat, lon: e.lon }));
+          const tiles = planDownloadAroundPoints(points);
+          downloadBtn.textContent = `downloading 0 of ${tiles.length} tiles...`;
+          await downloadTiles(tiles, (done, total) => {
+            downloadBtn.textContent = `downloading ${done} of ${total} tiles...`;
+          });
+          downloadBtn.textContent = `${tiles.length} tiles ready offline`;
+          downloadBtn.disabled = false;
+        });
+      }
+
       const input = container.querySelector('#country-search-input');
       const resultsBox = container.querySelector('#country-search-results');
       const original = container.querySelector('#country-original');
@@ -494,7 +593,7 @@ export async function viewCountryDetail(params, query) {
         if (!items.length) { resultsBox.innerHTML = '<p class="empty-state">no results in this country.</p>'; return; }
         resultsBox.innerHTML = items.map((e) => {
           const place = e.city ? `${escapeHtml(e.city)}, ${escapeHtml(e.country_name)}` : escapeHtml(e.country_name);
-          return `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.created_at)} &middot; ${place}</p></a>`;
+          return `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)} ${matchBadge(e.match_type)}</p><p class="meta">${escapeHtml(e.created_at)} &middot; ${place}</p>${matchDetail(e)}</a>`;
         }).join('');
       }
       input.addEventListener('input', () => {
@@ -555,7 +654,9 @@ export async function viewEntryDetail(params) {
       <p class="entry-meta">${escapeHtml(entry.created_at)}${entry.lat && entry.lon ? ` &middot; ${entry.lat.toFixed(4)}, ${entry.lon.toFixed(4)}` : ''}</p>
       ${tagNames.map((t) => `<span class="badge">#${escapeHtml(t)}</span>`).join('')}
     </div>
-    <div class="map-placeholder">offline map (coming soon)</div>
+    ${entry.lat && entry.lon
+      ? `<div class="leaflet-map-wrap"><div id="entry-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>`
+      : `<div class="map-placeholder">no gps location for this entry</div>`}
     ${entry.lat && entry.lon ? `<a class="btn btn-icon-text" href="https://maps.google.com/?q=${entry.lat},${entry.lon}" target="_blank">${icon('external')} open in google maps</a>` : ''}
     <p class="section-label">notes (${annotations.length})</p>
     ${annHtml}
@@ -567,7 +668,7 @@ export async function viewEntryDetail(params) {
     actions: `<a href="#/entry/${entryId}/edit" class="icon-btn" title="edit entry" aria-label="edit entry">${icon('edit')}</a>
       <button data-action="delete-entry" class="icon-btn danger" title="delete entry" aria-label="delete entry">${icon('trash')}</button>`,
     body,
-    mount() {
+    mount(container) {
       const delBtn = document.getElementById('topbar-actions').querySelector('[data-action="delete-entry"]');
       if (delBtn) {
         delBtn.addEventListener('click', async () => {
@@ -575,6 +676,19 @@ export async function viewEntryDetail(params) {
           await deleteEntryCascade(entryId);
           navigate('/');
         });
+      }
+
+      const mapEl = container.querySelector('#entry-map');
+      if (mapEl && entry.lat && entry.lon) {
+        // Leaflet needs the container in the DOM with a real height before
+        // it measures itself, which is guaranteed here since mount() runs
+        // after the body markup (with its CSS height) is inserted.
+        const map = L.map(mapEl, { attributionControl: true }).setView([entry.lat, entry.lon], 15);
+        createOfflineTileLayer().addTo(map);
+        L.marker([entry.lat, entry.lon], { icon: pinIcon }).addTo(map);
+
+        const fsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
+        if (fsBtn) setupMapFullscreen(map, mapEl, fsBtn);
       }
     },
   };
@@ -638,6 +752,8 @@ export async function viewEntryForm(params) {
         <input type="number" step="any" name="lon" id="lon-input" placeholder="lon" value="${lon}">
       </div>
       <p class="hint" id="gps-hint">${isEdit ? '*edit manually if gps isn\'t accurate' : '*detecting gps...'}</p>
+      <div class="leaflet-map-wrap"><div id="entry-form-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
+      ${hint('drag the pin to fine-tune, or tap the map to place it')}
 
       ${!isEdit ? `
       <label>first note (optional)</label>
@@ -662,6 +778,56 @@ export async function viewEntryForm(params) {
       const lonInput = container.querySelector('#lon-input');
       const gpsHint = container.querySelector('#gps-hint');
 
+      // ---- map with draggable pin, two-way synced with lat/lon inputs ----
+      const DEFAULT_CENTER = [20, 0];
+      const DEFAULT_ZOOM = 2;
+      const initialLat = latInput.value ? Number(latInput.value) : null;
+      const initialLon = lonInput.value ? Number(lonInput.value) : null;
+
+      const formMapEl = container.querySelector('#entry-form-map');
+      const formMap = L.map(formMapEl).setView(
+        initialLat != null && initialLon != null ? [initialLat, initialLon] : DEFAULT_CENTER,
+        initialLat != null && initialLon != null ? 15 : DEFAULT_ZOOM
+      );
+      createOfflineTileLayer().addTo(formMap);
+
+      const formFsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
+      if (formFsBtn) setupMapFullscreen(formMap, formMapEl, formFsBtn);
+
+      let formMarker = null;
+      function placeMarker(lat, lon, { pan } = {}) {
+        if (!formMarker) {
+          formMarker = L.marker([lat, lon], { draggable: true, icon: pinIcon }).addTo(formMap);
+          formMarker.on('dragend', () => {
+            const pos = formMarker.getLatLng();
+            latInput.value = pos.lat.toFixed(6);
+            lonInput.value = pos.lng.toFixed(6);
+            gpsHint.textContent = '*pin dragged manually';
+          });
+        } else {
+          formMarker.setLatLng([lat, lon]);
+        }
+        if (pan) formMap.setView([lat, lon], Math.max(formMap.getZoom(), 15));
+      }
+      if (initialLat != null && initialLon != null) placeMarker(initialLat, initialLon);
+
+      function onLatLonInputsChanged() {
+        const lat = Number(latInput.value);
+        const lon = Number(lonInput.value);
+        if (latInput.value && lonInput.value && !Number.isNaN(lat) && !Number.isNaN(lon)) {
+          placeMarker(lat, lon, { pan: true });
+        }
+      }
+      latInput.addEventListener('input', onLatLonInputsChanged);
+      lonInput.addEventListener('input', onLatLonInputsChanged);
+
+      formMap.on('click', (e) => {
+        latInput.value = e.latlng.lat.toFixed(6);
+        lonInput.value = e.latlng.lng.toFixed(6);
+        placeMarker(e.latlng.lat, e.latlng.lng, { pan: false });
+        gpsHint.textContent = '*pin placed manually';
+      });
+
       if (!isEdit) {
         const countryInput = form.querySelector('#country-input');
         const cityInput = form.querySelector('#city-input');
@@ -673,6 +839,7 @@ export async function viewEntryForm(params) {
             latInput.value = loc.lat.toFixed(6);
             lonInput.value = loc.lon.toFixed(6);
             gpsHint.textContent = '*prefilled from current gps, editable';
+            onLatLonInputsChanged();
 
             const geo = await reverseGeocode(loc.lat, loc.lon);
             if (geo) {
