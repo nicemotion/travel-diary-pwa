@@ -34,13 +34,26 @@ const pinIcon = L.icon({
 // invalidateSize() after any container resize, with a short delay so it
 // runs after the CSS class change has actually taken effect.
 function setupMapFullscreen(map, mapEl, btn) {
+  let savedScrollY = 0;
+
   function isFullscreen() {
     return mapEl.classList.contains('map-fullscreen');
+  }
+  function lockBodyScroll() {
+    savedScrollY = window.scrollY;
+    document.body.classList.add('map-fullscreen-active');
+    document.body.style.top = `-${savedScrollY}px`;
+  }
+  function unlockBodyScroll() {
+    document.body.classList.remove('map-fullscreen-active');
+    document.body.style.top = '';
+    window.scrollTo(0, savedScrollY);
   }
   function exitFullscreen() {
     if (!isFullscreen()) return;
     mapEl.classList.remove('map-fullscreen');
-    document.body.classList.remove('map-fullscreen-active');
+    btn.classList.remove('btn-fixed');
+    unlockBodyScroll();
     btn.innerHTML = icon('expand');
     btn.title = 'view fullscreen';
     setTimeout(() => map.invalidateSize(), 50);
@@ -54,7 +67,8 @@ function setupMapFullscreen(map, mapEl, btn) {
       document.removeEventListener('keydown', onKeydown);
     } else {
       mapEl.classList.add('map-fullscreen');
-      document.body.classList.add('map-fullscreen-active');
+      btn.classList.add('btn-fixed');
+      lockBodyScroll();
       btn.innerHTML = icon('collapse');
       btn.title = 'exit fullscreen';
       document.addEventListener('keydown', onKeydown);
