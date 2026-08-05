@@ -1,7 +1,7 @@
 // service-worker.js — precache di tutto lo shell dell'app.
 // Cambia CACHE_NAME ogni volta che aggiorni i file, così i client scaricano la nuova versione.
 
-const CACHE_NAME = 'travel-diary-v6';
+const CACHE_NAME = 'travel-diary-v7';
 
 const ASSETS = [
   './',

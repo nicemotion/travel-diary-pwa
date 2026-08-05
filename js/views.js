@@ -33,11 +33,11 @@ const pinIcon = L.icon({
 // regardless of the app's 480px max-width column). Leaflet needs
 // invalidateSize() after any container resize, with a short delay so it
 // runs after the CSS class change has actually taken effect.
-function setupMapFullscreen(map, mapEl, btn) {
+function setupMapFullscreen(map, wrapEl, btn) {
   let savedScrollY = 0;
 
   function isFullscreen() {
-    return mapEl.classList.contains('map-fullscreen');
+    return wrapEl.classList.contains('map-fullscreen');
   }
   function lockBodyScroll() {
     savedScrollY = window.scrollY;
@@ -51,8 +51,7 @@ function setupMapFullscreen(map, mapEl, btn) {
   }
   function exitFullscreen() {
     if (!isFullscreen()) return;
-    mapEl.classList.remove('map-fullscreen');
-    btn.classList.remove('btn-fixed');
+    wrapEl.classList.remove('map-fullscreen');
     unlockBodyScroll();
     btn.innerHTML = icon('expand');
     btn.title = 'view fullscreen';
@@ -66,8 +65,7 @@ function setupMapFullscreen(map, mapEl, btn) {
       exitFullscreen();
       document.removeEventListener('keydown', onKeydown);
     } else {
-      mapEl.classList.add('map-fullscreen');
-      btn.classList.add('btn-fixed');
+      wrapEl.classList.add('map-fullscreen');
       lockBodyScroll();
       btn.innerHTML = icon('collapse');
       btn.title = 'exit fullscreen';
@@ -701,8 +699,9 @@ export async function viewEntryDetail(params) {
         createOfflineTileLayer().addTo(map);
         L.marker([entry.lat, entry.lon], { icon: pinIcon }).addTo(map);
 
+        const wrapEl = container.querySelector('.leaflet-map-wrap');
         const fsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
-        if (fsBtn) setupMapFullscreen(map, mapEl, fsBtn);
+        if (fsBtn && wrapEl) setupMapFullscreen(map, wrapEl, fsBtn);
       }
     },
   };
@@ -805,8 +804,9 @@ export async function viewEntryForm(params) {
       );
       createOfflineTileLayer().addTo(formMap);
 
+      const formWrapEl = container.querySelector('.leaflet-map-wrap');
       const formFsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
-      if (formFsBtn) setupMapFullscreen(formMap, formMapEl, formFsBtn);
+      if (formFsBtn && formWrapEl) setupMapFullscreen(formMap, formWrapEl, formFsBtn);
 
       let formMarker = null;
       function placeMarker(lat, lon, { pan } = {}) {

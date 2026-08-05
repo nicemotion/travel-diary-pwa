@@ -154,21 +154,22 @@ body {
 }
 .map-fullscreen-btn svg { width: 16px; height: 16px; }
 .map-fullscreen-btn:hover { background: var(--surface-muted); }
-/* while the map is fullscreen the button must escape the (now-static)
-   wrapper and pin itself to the viewport too, above the map's z-index —
-   otherwise it stays anchored to where the wrapper used to be and ends up
-   hidden behind the fullscreen map. */
-.map-fullscreen-btn.btn-fixed {
-  position: fixed; top: 14px; right: 14px; z-index: 2001;
-}
 
-/* true fullscreen: escapes the app's 480px column since position:fixed is
-   relative to the viewport (the .app wrapper has no transform to trap it).
-   inset:0 alone (no explicit width/height) sizes it to the visual viewport,
-   avoiding the classic mobile-browser bug where 100vh counts space hidden
-   behind the address bar and the map spills past the bottom of the screen. */
-.leaflet-map.map-fullscreen {
+/* fullscreen toggles on the WRAPPER we control, not on Leaflet's own
+   container element — Leaflet manages that element's classes/inline
+   styles itself, which fought with a previous version of this rule (the
+   button ended up detached and the map's height stayed stuck at 200px).
+   The button is a child of the wrapper, so it now moves with it for free,
+   no separate positioning hack needed.
+   inset:0 alone (no explicit width/height) sizes it to the visual
+   viewport, avoiding the classic mobile-browser bug where 100vh counts
+   space hidden behind the address bar and the box spills past the screen. */
+.leaflet-map-wrap.map-fullscreen {
   position: fixed; inset: 0; z-index: 2000;
+  background: var(--surface-muted);
+}
+.leaflet-map-wrap.map-fullscreen .leaflet-map {
+  width: 100%; height: 100%;
   border-radius: 0; margin-bottom: 0;
 }
 body.map-fullscreen-active { overflow: hidden; position: fixed; width: 100%; }
