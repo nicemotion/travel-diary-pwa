@@ -146,11 +146,49 @@ export async function getEntryTagNames(entryId) {
 
 export async function deleteEntryCascade(entryId) {
   const id = Number(entryId);
+  const entry = await getById('entries', id);
+
   const links = await getAllByIndex('entry_tags', 'entry_id', id);
+  const tagIds = [...new Set(links.map((l) => l.tag_id))];
   for (const l of links) await remove('entry_tags', l.id);
+
   const anns = await getAllByIndex('annotations', 'entry_id', id);
   for (const a of anns) await remove('annotations', a.id);
+
   await remove('entries', id);
+
+  // a tag with no entries left pointing to it is orphaned — drop it so it
+  // doesn't linger in Explore/Tags with a permanent "0 entries"
+  for (const tagId of tagIds) {
+    const stillUsed = await getAllByIndex('entry_tags', 'tag_id', tagId);
+    if (stillUsed.length === 0) await remove('tags', tagId);
+  }
+
+  // same idea for the country: if this was its last entry (across ALL
+  // trips, not just the one being deleted), drop it too
+  if (entry && entry.country_id != null) {
+    const remainingInCountry = await getAllByIndex('entries', 'country_id', entry.country_id);
+    if (remainingInCountry.length === 0) await remove('countries', entry.country_id);
+  }
+}
+
+// one-time (or periodic) cleanup for orphans that predate the fix in
+// deleteEntryCascade above — safe to call anytime, only removes a country/
+// tag that genuinely has zero entries referencing it right now
+export async function sweepOrphans() {
+  const [countries, entries, tags, entryTags] = await Promise.all([
+    getAll('countries'), getAll('entries'), getAll('tags'), getAll('entry_tags'),
+  ]);
+
+  const usedCountryIds = new Set(entries.map((e) => e.country_id).filter((v) => v != null));
+  for (const c of countries) {
+    if (!usedCountryIds.has(c.id)) await remove('countries', c.id);
+  }
+
+  const usedTagIds = new Set(entryTags.map((l) => l.tag_id));
+  for (const t of tags) {
+    if (!usedTagIds.has(t.id)) await remove('tags', t.id);
+  }
 }
 
 export function haversineMeters(lat1, lon1, lat2, lon2) {

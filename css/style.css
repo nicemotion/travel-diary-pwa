@@ -152,6 +152,7 @@ body {
 
 .leaflet-map-wrap { position: relative; }
 .leaflet-map-wrap .leaflet-map { margin-bottom: 8px; }
+.map-tab-map { height: 62vh; }
 
 .map-fullscreen-btn {
   position: absolute; top: 10px; right: 10px; z-index: 1000;

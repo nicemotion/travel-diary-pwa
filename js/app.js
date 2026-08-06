@@ -1,6 +1,7 @@
 // app.js — bootstrap: registra le rotte (equivalente delle @app.route Flask) e avvia il router
 
 import { route, startRouter } from './router.js';
+import { sweepOrphans } from './db.js';
 import {
   viewHome, viewSearch,
   viewMap,
@@ -37,6 +38,10 @@ route('/entry/:id', viewEntryDetail);
 
 route('/annotation/:id/edit', (params) => viewAnnotationForm({ annotationId: params.id }));
 route('/annotation/:id', viewAnnotationDetail);
+
+// pulisce eventuali country/tag rimasti orfani da prima di questo fix
+// (deleteEntryCascade ora li rimuove da sola per le cancellazioni future)
+sweepOrphans().catch((err) => console.warn('sweepOrphans fallita:', err));
 
 startRouter();
 

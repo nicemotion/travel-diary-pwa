@@ -350,7 +350,7 @@ export async function viewMap(params, query) {
             <button type="button" class="radius-btn badge" data-km="all">all</button>
           </div>
         </div>`}
-    <div class="leaflet-map-wrap"><div id="map-tab-map" class="leaflet-map" style="height: 62vh;"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
+    <div class="leaflet-map-wrap"><div id="map-tab-map" class="leaflet-map map-tab-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
     <p id="map-empty-hint" class="empty-state" style="display:none;">no places with gps ${isScoped ? `in ${escapeHtml(scopeLabel)}` : 'nearby \u2014 try a bigger radius or "all"'}.</p>
   `;
 
