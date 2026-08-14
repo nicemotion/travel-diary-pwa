@@ -10,7 +10,7 @@ import {
   viewTagsList,
   viewEntryDetail, viewEntryForm,
   viewAnnotationForm, viewAnnotationDetail,
-  viewBackup,
+  viewBackup, viewImportEntry,
 } from './views.js';
 
 // le rotte con segmento fisso (es. /trips/new) vanno registrate PRIMA di
@@ -19,6 +19,7 @@ route('/', viewHome);
 route('/search', viewSearch);
 route('/map', viewMap);
 route('/backup', viewBackup);
+route('/import', viewImportEntry);
 
 route('/trips', viewTripsList);
 route('/trips/new', viewTripForm);

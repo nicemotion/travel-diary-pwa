@@ -12,6 +12,7 @@ import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
 import { createOfflineTileLayer, planDownloadAroundPoints, downloadTiles } from './tiles.js';
 import { noteContentAdded, noteBackupCompleted, snoozeReminder, getReminderState } from './backupReminder.js';
+import { exportEntryZip, exportEntryHtml, shareOrDownload, importEntryPackage, commitImportedEntry } from './share.js';
 
 // Leaflet's Icon.Default automatically prepends a detected/merged imagePath
 // in front of iconUrl/shadowUrl, which is fragile with a vendored (non-CDN)
@@ -126,7 +127,7 @@ function openLightbox(url) {
 // (same graceful fallback already used for gps itself).
 async function reverseGeocode(lat, lon) {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1&accept-language=en`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
     if (!res.ok) return null;
     const data = await res.json();
@@ -139,33 +140,75 @@ async function reverseGeocode(lat, lon) {
   }
 }
 
+// reverse geocoding for a full, human-readable street address (building
+// level, zoom=18) rather than just country/city — used to show "what's at
+// this pin" under the map on the entry detail page. Requested in English
+// (accept-language=en) regardless of the device's own language.
+async function reverseGeocodeAddress(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=0&accept-language=en`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.display_name || null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- Home ----------
 
 const RADIUS_OPTIONS_KM = [1, 4, 10];
 const DEFAULT_RADIUS_KM = 4;
 
+const DOWNLOAD_RADIUS_OPTIONS_KM = [1, 2, 5, 10];
+
+function downloadMapControlsHtml(scopeWord) {
+  return `
+    <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
+      <label for="download-radius-select" style="font-size:12px; color:var(--text-muted); white-space:nowrap;">coverage</label>
+      <select id="download-radius-select" style="flex:1; padding:6px 8px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; color:var(--text-dark);">
+        ${DOWNLOAD_RADIUS_OPTIONS_KM.map((km) => `<option value="${km}"${km === 1 ? ' selected' : ''}>${km} km around each pin</option>`).join('')}
+      </select>
+    </div>
+    <button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this ${scopeWord}</button>`;
+}
+
+// returns { html, usedFallback }. usedFallback is true when we DID have gps
+// and DID filter by radiusKm, but nothing matched, so the list below is the
+// most-recent-entries fallback rather than an actual "nearby" result — the
+// caller uses this to relabel the section so it isn't mistaken for nearby.
 function nearbyListHtml(entries, countryById, loc, radiusKm) {
   let nearby = [];
+  let usedFallback = false;
   if (loc) {
     nearby = entries
       .filter((e) => e.lat != null && e.lon != null)
       .map((e) => ({ entry: e, distance: haversineMeters(loc.lat, loc.lon, e.lat, e.lon) }))
       .filter((x) => x.distance <= radiusKm * 1000)
       .sort((a, b) => a.distance - b.distance);
+    if (!nearby.length) usedFallback = true;
   }
   if (!nearby.length) {
     const recent = [...entries].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, 5);
     nearby = recent.map((e) => ({ entry: e, distance: null }));
   }
   if (!nearby.length) {
-    return '<p class="empty-state">no entries yet. tap + to create one.</p>';
+    return { html: '<p class="empty-state">no entries yet. tap + to create one.</p>', usedFallback: false };
   }
-  return nearby.map((item) => {
+  const html = nearby.map((item) => {
     const c = countryById[item.entry.country_id];
     const meta = [item.distance != null ? Math.round(item.distance) + 'm' : null, c ? c.name : '']
-      .filter(Boolean).join(' &middot; ');
+      .filter(Boolean).join(' · ');
     return `<a href="#/entry/${item.entry.id}" class="card"><p class="title">${escapeHtml(item.entry.title)}</p><p class="meta">${escapeHtml(meta)}</p></a>`;
   }).join('');
+  return { html, usedFallback };
+}
+
+function nearbyLabelText(loc, usedFallback, radiusKm) {
+  if (!loc) return 'recent (no gps available)';
+  if (usedFallback) return `nothing within ${radiusKm}km — showing recent instead`;
+  return 'nearby';
 }
 
 function backupReminderHtml(state) {
@@ -196,6 +239,8 @@ export async function viewHome() {
   const loc = await getLocation();
   const reminder = getReminderState();
 
+  const { html: nearbyHtml, usedFallback: initialFallback } = nearbyListHtml(entries, countryById, loc, DEFAULT_RADIUS_KM);
+
   const body = `
     <div style="position:relative;">
       <div class="search-box">
@@ -213,13 +258,13 @@ export async function viewHome() {
     ${backupReminderHtml(reminder)}
 
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-      <p class="section-label" id="nearby-label" style="margin:0;">${loc ? 'nearby' : 'recent (no gps available)'}</p>
+      <p class="section-label" id="nearby-label" style="margin:0;">${nearbyLabelText(loc, initialFallback, DEFAULT_RADIUS_KM)}</p>
       ${loc ? `<div style="display:flex; gap:4px;">
         ${RADIUS_OPTIONS_KM.map((km) => `<button type="button" class="radius-btn badge ${km === DEFAULT_RADIUS_KM ? 'accent' : ''}" data-km="${km}" style="border:none; cursor:pointer;">${km}km</button>`).join('')}
       </div>` : ''}
     </div>
 
-    <div id="nearby-list">${nearbyListHtml(entries, countryById, loc, DEFAULT_RADIUS_KM)}</div>
+    <div id="nearby-list">${nearbyHtml}</div>
 
     ${!entries.length && trips.length === 0 ? `<button id="seed-btn" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">load sample data to try the app</button>` : ''}
   `;
@@ -247,11 +292,14 @@ export async function viewHome() {
       }
 
       const nearbyList = container.querySelector('#nearby-list');
+      const nearbyLabel = container.querySelector('#nearby-label');
       container.querySelectorAll('.radius-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
           const km = Number(btn.dataset.km);
           container.querySelectorAll('.radius-btn').forEach((b) => b.classList.toggle('accent', b === btn));
-          nearbyList.innerHTML = nearbyListHtml(entries, countryById, loc, km);
+          const { html, usedFallback } = nearbyListHtml(entries, countryById, loc, km);
+          nearbyList.innerHTML = html;
+          nearbyLabel.textContent = nearbyLabelText(loc, usedFallback, km);
         });
       });
 
@@ -587,7 +635,7 @@ export async function viewTripDetail(params, query) {
       ${listHtml}
       ${entries.some((e) => e.lat && e.lon) ? `
       <a href="#/map${buildQuery({ trip: tripId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
-      <button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this trip</button>` : ''}
+      ${downloadMapControlsHtml('trip')}` : ''}
     </div>
   `;
 
@@ -602,7 +650,8 @@ export async function viewTripDetail(params, query) {
         downloadBtn.addEventListener('click', async () => {
           downloadBtn.disabled = true;
           const points = entries.filter((e) => e.lat && e.lon).map((e) => ({ lat: e.lat, lon: e.lon }));
-          const tiles = planDownloadAroundPoints(points);
+          const radiusKm = Number(container.querySelector('#download-radius-select')?.value || 1);
+          const tiles = planDownloadAroundPoints(points, radiusKm);
           downloadBtn.textContent = `downloading 0 of ${tiles.length} tiles...`;
           await downloadTiles(tiles, (done, total) => {
             downloadBtn.textContent = `downloading ${done} of ${total} tiles...`;
@@ -674,6 +723,7 @@ export async function viewCountriesList() {
     <a href="#/tags" class="card"><p class="title">all tags</p></a>
     <p class="section-label">data</p>
     <a href="#/backup" class="card"><p class="title">backup &amp; restore</p></a>
+    <a href="#/import" class="card"><p class="title">import shared entry</p></a>
   `;
   return { title: 'Explore', body };
 }
@@ -727,7 +777,7 @@ export async function viewCountryDetail(params, query) {
       ${listHtml}
       ${entries.some((e) => e.lat && e.lon) ? `
       <a href="#/map${buildQuery({ country: countryId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
-      <button id="download-map-btn" type="button" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} download offline map for this country</button>` : ''}
+      ${downloadMapControlsHtml('country')}` : ''}
     </div>
   `;
 
@@ -740,7 +790,8 @@ export async function viewCountryDetail(params, query) {
         downloadBtn.addEventListener('click', async () => {
           downloadBtn.disabled = true;
           const points = entries.filter((e) => e.lat && e.lon).map((e) => ({ lat: e.lat, lon: e.lon }));
-          const tiles = planDownloadAroundPoints(points);
+          const radiusKm = Number(container.querySelector('#download-radius-select')?.value || 1);
+          const tiles = planDownloadAroundPoints(points, radiusKm);
           downloadBtn.textContent = `downloading 0 of ${tiles.length} tiles...`;
           await downloadTiles(tiles, (done, total) => {
             downloadBtn.textContent = `downloading ${done} of ${total} tiles...`;
@@ -820,8 +871,13 @@ export async function viewEntryDetail(params) {
       <p class="entry-meta">${escapeHtml(entry.created_at)}${entry.lat && entry.lon ? ` &middot; ${entry.lat.toFixed(4)}, ${entry.lon.toFixed(4)}` : ''}</p>
       ${tagNames.map((t) => `<span class="badge">#${escapeHtml(t)}</span>`).join('')}
     </div>
+    <div style="display:flex; gap:8px; margin: 10px 0;">
+      <button type="button" id="share-zip-btn" class="btn-icon-text" style="flex:1; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('share')} share for travel diary</button>
+      <button type="button" id="share-html-btn" class="btn-icon-text" style="flex:1; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('external')} share as readable file</button>
+    </div>
     ${entry.lat && entry.lon
-      ? `<div class="leaflet-map-wrap"><div id="entry-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>`
+      ? `<div class="leaflet-map-wrap"><div id="entry-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
+         <p class="meta" id="entry-address">looking up address...</p>`
       : `<div class="map-placeholder">no gps location for this entry</div>`}
     ${entry.lat && entry.lon ? `<a class="btn btn-icon-text" href="https://maps.google.com/?q=${entry.lat},${entry.lon}" target="_blank">${icon('external')} open in google maps</a>` : ''}
     <p class="section-label">notes (${annotations.length})</p>
@@ -841,6 +897,49 @@ export async function viewEntryDetail(params) {
           if (!confirm('Delete this entry and all its notes?')) return;
           await deleteEntryCascade(entryId);
           navigate('/');
+        });
+      }
+
+      const shareZipBtn = container.querySelector('#share-zip-btn');
+      if (shareZipBtn) {
+        shareZipBtn.addEventListener('click', async () => {
+          const original = shareZipBtn.innerHTML;
+          shareZipBtn.disabled = true;
+          shareZipBtn.textContent = 'preparing...';
+          try {
+            const { blob, filename } = await exportEntryZip(entryId);
+            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary entry: ${entry.title}` });
+          } catch (err) {
+            alert('Could not prepare the file: ' + err.message);
+          } finally {
+            shareZipBtn.disabled = false;
+            shareZipBtn.innerHTML = original;
+          }
+        });
+      }
+
+      const shareHtmlBtn = container.querySelector('#share-html-btn');
+      if (shareHtmlBtn) {
+        shareHtmlBtn.addEventListener('click', async () => {
+          const original = shareHtmlBtn.innerHTML;
+          shareHtmlBtn.disabled = true;
+          shareHtmlBtn.textContent = 'preparing...';
+          try {
+            const { blob, filename } = await exportEntryHtml(entryId);
+            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary entry: ${entry.title}` });
+          } catch (err) {
+            alert('Could not prepare the file: ' + err.message);
+          } finally {
+            shareHtmlBtn.disabled = false;
+            shareHtmlBtn.innerHTML = original;
+          }
+        });
+      }
+
+      const addressEl = container.querySelector('#entry-address');
+      if (addressEl && entry.lat && entry.lon) {
+        reverseGeocodeAddress(entry.lat, entry.lon).then((address) => {
+          addressEl.textContent = address || 'address unavailable';
         });
       }
 
@@ -920,7 +1019,7 @@ export async function viewEntryForm(params) {
       </div>
       <p class="hint" id="gps-hint">${isEdit ? '*edit manually if gps isn\'t accurate' : '*detecting gps...'}</p>
       <div class="leaflet-map-wrap"><div id="entry-form-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
-      ${hint('drag the pin to fine-tune, or tap the map to place it')}
+      ${hint('drag the pin to fine-tune, or tap the map to place it — country/city update automatically')}
 
       ${!isEdit ? `
       <label>first note (optional)</label>
@@ -944,6 +1043,28 @@ export async function viewEntryForm(params) {
       const latInput = container.querySelector('#lat-input');
       const lonInput = container.querySelector('#lon-input');
       const gpsHint = container.querySelector('#gps-hint');
+      const countryInput = form.querySelector('#country-input');
+      const cityInput = form.querySelector('#city-input');
+      const countryHint = form.querySelector('#country-hint');
+      const cityHint = form.querySelector('#city-hint');
+
+      // whenever the pin is placed or moved (drag, click, or initial gps
+      // fix), look up country/city for that spot and fill the fields —
+      // works the same in both "new entry" and "edit entry" flows, so
+      // relocating an existing entry keeps country/city in sync with gps
+      async function updateAddressFromPin(lat, lon) {
+        countryHint.textContent = '*looking up location...';
+        cityHint.textContent = '';
+        const geo = await reverseGeocode(lat, lon);
+        if (geo) {
+          if (geo.country) countryInput.value = geo.country;
+          if (geo.city) cityInput.value = geo.city;
+          countryHint.textContent = '*updated from pin location, editable';
+          cityHint.textContent = geo.city ? '*updated from pin location, editable' : '';
+        } else {
+          countryHint.textContent = '*could not detect location here, edit manually';
+        }
+      }
 
       // ---- map with draggable pin, two-way synced with lat/lon inputs ----
       const DEFAULT_CENTER = [20, 0];
@@ -971,6 +1092,7 @@ export async function viewEntryForm(params) {
             latInput.value = pos.lat.toFixed(6);
             lonInput.value = pos.lng.toFixed(6);
             gpsHint.textContent = '*pin dragged manually';
+            updateAddressFromPin(pos.lat, pos.lng);
           });
         } else {
           formMarker.setLatLng([lat, lon]);
@@ -994,34 +1116,17 @@ export async function viewEntryForm(params) {
         lonInput.value = e.latlng.lng.toFixed(6);
         placeMarker(e.latlng.lat, e.latlng.lng, { pan: false });
         gpsHint.textContent = '*pin placed manually';
+        updateAddressFromPin(e.latlng.lat, e.latlng.lng);
       });
 
       if (!isEdit) {
-        const countryInput = form.querySelector('#country-input');
-        const cityInput = form.querySelector('#city-input');
-        const countryHint = form.querySelector('#country-hint');
-        const cityHint = form.querySelector('#city-hint');
-
         getLocation().then(async (loc) => {
           if (loc && !latInput.value && !lonInput.value) {
             latInput.value = loc.lat.toFixed(6);
             lonInput.value = loc.lon.toFixed(6);
             gpsHint.textContent = '*prefilled from current gps, editable';
             onLatLonInputsChanged();
-
-            const geo = await reverseGeocode(loc.lat, loc.lon);
-            if (geo) {
-              // only overwrite if the user hasn't already typed something themselves
-              // in the brief moment while we were waiting for the network reply
-              if (geo.country && countryInput.value === defaultCountry) {
-                countryInput.value = geo.country;
-                countryHint.textContent = '*detected from your current location, editable';
-              }
-              if (geo.city && cityInput.value === defaultCity) {
-                cityInput.value = geo.city;
-                cityHint.textContent = '*detected from your current location, editable';
-              }
-            }
+            await updateAddressFromPin(loc.lat, loc.lon);
           } else if (!loc) {
             gpsHint.textContent = '*gps not available, enter location manually if you like';
           }
@@ -1272,6 +1377,97 @@ export async function viewBackup() {
           alert('Could not restore this backup: ' + err.message);
         } finally {
           importBtn.textContent = 'restore from backup';
+        }
+      });
+    },
+  };
+}
+
+// ---------- Import shared entry ----------
+
+export async function viewImportEntry() {
+  const trips = await getAll('trips');
+  trips.sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''));
+
+  const body = `
+    <p class="section-label">import a shared entry</p>
+    <input type="file" id="import-file-input" accept=".zip">
+    ${hint('choose a Travel Diary entry file (.zip) that someone shared with you.')}
+
+    <div id="import-preview" style="display:none; margin-top:14px;">
+      <div class="card" id="import-summary"></div>
+
+      <label>save into trip</label>
+      <select id="import-trip-select">
+        ${trips.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
+        <option value="__new__">+ new trip...</option>
+      </select>
+      <input type="text" id="import-new-trip-name" placeholder="new trip name" style="display:none; margin-top:8px;">
+
+      <button type="button" id="import-confirm-btn">import entry</button>
+    </div>
+  `;
+
+  return {
+    title: 'Import Entry',
+    body,
+    mount(container) {
+      const fileInput = container.querySelector('#import-file-input');
+      const preview = container.querySelector('#import-preview');
+      const summary = container.querySelector('#import-summary');
+      const tripSelect = container.querySelector('#import-trip-select');
+      const newTripInput = container.querySelector('#import-new-trip-name');
+      const confirmBtn = container.querySelector('#import-confirm-btn');
+
+      // no trips yet: only "+ new trip..." is in the list, so show the
+      // name field right away instead of waiting for a change event that
+      // will never fire on a single-option select
+      if (tripSelect.value === '__new__') newTripInput.style.display = 'block';
+
+      let pending = null; // { payload, photoByName }
+
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        try {
+          pending = await importEntryPackage(file);
+          const p = pending.payload;
+          const noteCount = (p.annotations || []).length;
+          const place = p.city ? `${escapeHtml(p.city)}, ${escapeHtml(p.country || '')}` : escapeHtml(p.country || '');
+          summary.innerHTML = `<p class="title">${escapeHtml(p.title || '')}</p><p class="meta">${place} &middot; ${noteCount} note${noteCount === 1 ? '' : 's'}</p>`;
+          preview.style.display = 'block';
+        } catch (err) {
+          alert('Could not read this file: ' + err.message);
+          preview.style.display = 'none';
+          pending = null;
+        }
+      });
+
+      tripSelect.addEventListener('change', () => {
+        newTripInput.style.display = tripSelect.value === '__new__' ? 'block' : 'none';
+      });
+
+      confirmBtn.addEventListener('click', async () => {
+        if (!pending) { alert('choose a file first'); return; }
+        let tripId;
+        if (tripSelect.value === '__new__') {
+          const name = newTripInput.value.trim();
+          if (!name) { alert('enter a name for the new trip'); return; }
+          tripId = await add('trips', { name, start_date: null, end_date: null, is_active: 0 });
+        } else {
+          if (!tripSelect.value) { alert('choose a trip'); return; }
+          tripId = Number(tripSelect.value);
+        }
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'importing...';
+        try {
+          const entryId = await commitImportedEntry(pending.payload, pending.photoByName, tripId);
+          noteContentAdded();
+          navigate('/entry/' + entryId);
+        } catch (err) {
+          alert('Import failed: ' + err.message);
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'import entry';
         }
       });
     },
