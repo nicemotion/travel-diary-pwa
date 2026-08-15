@@ -116,6 +116,24 @@ export function createOfflineTileLayer(options) {
   });
 }
 
+// TEST/PROVA — overlay con le sole etichette in inglese (Carto), sempre
+// online (mai passa dalla cache IndexedDB). Va sovrapposto sopra il layer
+// base esistente: NON sostituisce le etichette locali gia' disegnate nei
+// pixel della tile OSM standard, quindi in alcune zone si vedra' testo
+// doppio (locale + inglese). E' solo per valutare il risultato: se non va
+// bene si rimuove la riga che la aggiunge in views.js, senza altri effetti.
+export function createEnglishLabelsOverlay() {
+  return L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+    {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+      pane: 'overlayPane',
+    }
+  );
+}
+
 // ---------- pre-download around points ----------
 
 function lon2tileX(lon, zoom) {

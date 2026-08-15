@@ -10,7 +10,7 @@ import { navigate, buildQuery } from './router.js';
 import { getLocation } from './geolocation.js';
 import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
-import { createOfflineTileLayer, planDownloadAroundPoints, downloadTiles } from './tiles.js';
+import { createOfflineTileLayer, createEnglishLabelsOverlay, planDownloadAroundPoints, downloadTiles } from './tiles.js';
 import { noteContentAdded, noteBackupCompleted, snoozeReminder, getReminderState } from './backupReminder.js';
 import { exportEntryZip, exportEntryHtml, shareOrDownload, importEntryPackage, commitImportedEntry } from './share.js';
 
@@ -409,6 +409,7 @@ export async function viewMap(params, query) {
       const mapEl = container.querySelector('#map-tab-map');
       const map = L.map(mapEl, { attributionControl: true }).setView([20, 0], 2);
       createOfflineTileLayer().addTo(map);
+      createEnglishLabelsOverlay().addTo(map); // TEST/PROVA — vedi tiles.js
 
       const wrapEl = container.querySelector('.leaflet-map-wrap');
       const fsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
@@ -950,6 +951,7 @@ export async function viewEntryDetail(params) {
         // after the body markup (with its CSS height) is inserted.
         const map = L.map(mapEl, { attributionControl: true }).setView([entry.lat, entry.lon], 15);
         createOfflineTileLayer().addTo(map);
+        createEnglishLabelsOverlay().addTo(map); // TEST/PROVA — vedi tiles.js
         L.marker([entry.lat, entry.lon], { icon: pinIcon }).addTo(map);
 
         const wrapEl = container.querySelector('.leaflet-map-wrap');
@@ -1078,6 +1080,7 @@ export async function viewEntryForm(params) {
         initialLat != null && initialLon != null ? 15 : DEFAULT_ZOOM
       );
       createOfflineTileLayer().addTo(formMap);
+      createEnglishLabelsOverlay().addTo(formMap); // TEST/PROVA — vedi tiles.js
 
       const formWrapEl = container.querySelector('.leaflet-map-wrap');
       const formFsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
