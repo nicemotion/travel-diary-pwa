@@ -164,6 +164,18 @@ body {
 .map-fullscreen-btn svg { width: 16px; height: 16px; }
 .map-fullscreen-btn:hover { background: var(--surface-muted); }
 
+.map-locate-btn {
+  position: absolute; top: 50px; right: 10px; z-index: 1000;
+  width: 34px; height: 34px; margin: 0; padding: 0;
+  border-radius: 8px; border: none; background: #fff;
+  color: var(--text-dark); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35); cursor: pointer;
+}
+.map-locate-btn svg { width: 16px; height: 16px; }
+.map-locate-btn:hover { background: var(--surface-muted); }
+.map-locate-btn:disabled { opacity: 0.5; cursor: default; }
+.leaflet-map-wrap.map-fullscreen .map-locate-btn { top: 54px; }
+
 /* fullscreen toggles on the WRAPPER we control, not on Leaflet's own
    container element — Leaflet manages that element's classes/inline
    styles itself, which fought with a previous version of this rule (the

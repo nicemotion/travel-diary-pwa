@@ -1018,8 +1018,8 @@ export async function viewEntryForm(params) {
         <input type="number" step="any" name="lon" id="lon-input" placeholder="lon" value="${lon}">
       </div>
       <p class="hint" id="gps-hint">${isEdit ? '*edit manually if gps isn\'t accurate' : '*detecting gps...'}</p>
-      <div class="leaflet-map-wrap"><div id="entry-form-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button></div>
-      ${hint('drag the pin to fine-tune, or tap the map to place it — country/city update automatically')}
+      <div class="leaflet-map-wrap"><div id="entry-form-map" class="leaflet-map"></div><button type="button" class="map-fullscreen-btn" data-fullscreen-btn title="view fullscreen" aria-label="view fullscreen">${icon('expand')}</button><button type="button" class="map-locate-btn" id="locate-me-btn" title="center pin on my current location" aria-label="center pin on my current location">${icon('locate')}</button></div>
+      ${hint('drag the pin to fine-tune, tap the map to place it, or tap the target button to center it on your current gps — country/city update automatically')}
 
       ${!isEdit ? `
       <label>first note (optional)</label>
@@ -1130,6 +1130,31 @@ export async function viewEntryForm(params) {
           } else if (!loc) {
             gpsHint.textContent = '*gps not available, enter location manually if you like';
           }
+        });
+      }
+
+      // "locate me" button: re-reads the device's current gps position and
+      // snaps the pin there — mainly useful in edit mode, where the pin
+      // normally stays wherever the entry was originally placed and never
+      // gets a fresh gps read otherwise.
+      const locateBtn = container.querySelector('#locate-me-btn');
+      if (locateBtn) {
+        locateBtn.addEventListener('click', async () => {
+          locateBtn.disabled = true;
+          const original = locateBtn.innerHTML;
+          locateBtn.innerHTML = '…';
+          const loc = await getLocation();
+          locateBtn.disabled = false;
+          locateBtn.innerHTML = original;
+          if (!loc) {
+            gpsHint.textContent = '*could not get current gps position';
+            return;
+          }
+          latInput.value = loc.lat.toFixed(6);
+          lonInput.value = loc.lon.toFixed(6);
+          placeMarker(loc.lat, loc.lon, { pan: true });
+          gpsHint.textContent = '*pin centered on current gps';
+          await updateAddressFromPin(loc.lat, loc.lon);
         });
       }
 
