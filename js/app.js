@@ -11,6 +11,7 @@ import {
   viewEntryDetail, viewEntryForm,
   viewAnnotationForm, viewAnnotationDetail,
   viewBackup, viewImportEntry,
+  viewTools, viewExportCountry,
 } from './views.js';
 
 // le rotte con segmento fisso (es. /trips/new) vanno registrate PRIMA di
@@ -20,6 +21,8 @@ route('/search', viewSearch);
 route('/map', viewMap);
 route('/backup', viewBackup);
 route('/import', viewImportEntry);
+route('/tools/export-country', viewExportCountry);
+route('/tools', viewTools);
 
 route('/trips', viewTripsList);
 route('/trips/new', viewTripForm);

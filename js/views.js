@@ -3,6 +3,7 @@
 import {
   getAll, getById, add, put, remove, getAllByIndex,
   findOrCreateCountry, setEntryTags, getEntryTagNames, deleteEntryCascade, haversineMeters,
+  renameTag, deleteTag,
 } from './db.js';
 import { searchEntries } from './search.js';
 import { icon } from './icons.js';
@@ -12,7 +13,7 @@ import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
 import { createOfflineTileLayer, createEnglishLabelsOverlay, planDownloadAroundPoints, downloadTiles } from './tiles.js';
 import { noteContentAdded, noteBackupCompleted, snoozeReminder, getReminderState } from './backupReminder.js';
-import { exportEntryZip, exportEntryHtml, shareOrDownload, importEntryPackage, commitImportedEntry } from './share.js';
+import { exportEntryZip, exportEntryHtml, exportCountryJson, shareOrDownload, importEntryPackage, commitImportedEntry } from './share.js';
 
 // Leaflet's Icon.Default automatically prepends a detected/merged imagePath
 // in front of iconUrl/shadowUrl, which is fragile with a vendored (non-CDN)
@@ -236,10 +237,26 @@ export async function viewHome() {
   const [trips, entries, countries] = await Promise.all([getAll('trips'), getAll('entries'), getAll('countries')]);
   const activeTrip = trips.find((t) => t.is_active);
   const countryById = Object.fromEntries(countries.map((c) => [c.id, c]));
-  const loc = await getLocation();
   const reminder = getReminderState();
 
-  const { html: nearbyHtml, usedFallback: initialFallback } = nearbyListHtml(entries, countryById, loc, DEFAULT_RADIUS_KM);
+  // gps is fetched later, in mount() — getCurrentPosition can take several
+  // seconds (or the full timeout) especially on a pc with no real gps, and
+  // the router awaits this whole function before it renders anything, so
+  // the page used to sit on "loading..." the entire time. rendering with
+  // the no-gps fallback first and upgrading to "nearby" if/when a fix
+  // arrives keeps the home screen instant either way.
+  function nearbySectionHtml(loc) {
+    const { html: nearbyHtml, usedFallback } = nearbyListHtml(entries, countryById, loc, DEFAULT_RADIUS_KM);
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+        <p class="section-label" id="nearby-label" style="margin:0;">${nearbyLabelText(loc, usedFallback, DEFAULT_RADIUS_KM)}</p>
+        ${loc ? `<div style="display:flex; gap:4px;">
+          ${RADIUS_OPTIONS_KM.map((km) => `<button type="button" class="radius-btn badge ${km === DEFAULT_RADIUS_KM ? 'accent' : ''}" data-km="${km}" style="border:none; cursor:pointer;">${km}km</button>`).join('')}
+        </div>` : ''}
+      </div>
+      <div id="nearby-list">${nearbyHtml}</div>
+    `;
+  }
 
   const body = `
     <div style="position:relative;">
@@ -257,14 +274,7 @@ export async function viewHome() {
 
     ${backupReminderHtml(reminder)}
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-      <p class="section-label" id="nearby-label" style="margin:0;">${nearbyLabelText(loc, initialFallback, DEFAULT_RADIUS_KM)}</p>
-      ${loc ? `<div style="display:flex; gap:4px;">
-        ${RADIUS_OPTIONS_KM.map((km) => `<button type="button" class="radius-btn badge ${km === DEFAULT_RADIUS_KM ? 'accent' : ''}" data-km="${km}" style="border:none; cursor:pointer;">${km}km</button>`).join('')}
-      </div>` : ''}
-    </div>
-
-    <div id="nearby-list">${nearbyHtml}</div>
+    <div id="nearby-section">${nearbySectionHtml(null)}</div>
 
     ${!entries.length && trips.length === 0 ? `<button id="seed-btn" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">load sample data to try the app</button>` : ''}
   `;
@@ -272,7 +282,7 @@ export async function viewHome() {
   return {
     title: 'Travel Diary',
     body,
-    actions: `<a href="./Trip_Diary_quick-guide.pdf" target="_blank" class="icon-btn" title="guide" aria-label="guide">${icon('help')}</a>`,
+    actions: `<a href="#/tools" class="icon-btn" title="tools" aria-label="tools">${icon('settings')}</a>`,
     mount(container) {
       const snoozeBtn = container.querySelector('#backup-reminder-snooze');
       if (snoozeBtn) {
@@ -291,16 +301,30 @@ export async function viewHome() {
         });
       }
 
-      const nearbyList = container.querySelector('#nearby-list');
-      const nearbyLabel = container.querySelector('#nearby-label');
-      container.querySelectorAll('.radius-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const km = Number(btn.dataset.km);
-          container.querySelectorAll('.radius-btn').forEach((b) => b.classList.toggle('accent', b === btn));
-          const { html, usedFallback } = nearbyListHtml(entries, countryById, loc, km);
-          nearbyList.innerHTML = html;
-          nearbyLabel.textContent = nearbyLabelText(loc, usedFallback, km);
+      function wireNearbySection(loc) {
+        const nearbyList = container.querySelector('#nearby-list');
+        const nearbyLabel = container.querySelector('#nearby-label');
+        container.querySelectorAll('.radius-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const km = Number(btn.dataset.km);
+            container.querySelectorAll('.radius-btn').forEach((b) => b.classList.toggle('accent', b === btn));
+            const { html, usedFallback } = nearbyListHtml(entries, countryById, loc, km);
+            nearbyList.innerHTML = html;
+            nearbyLabel.textContent = nearbyLabelText(loc, usedFallback, km);
+          });
         });
+      }
+      wireNearbySection(null);
+
+      // upgrades the section in place once/if a gps fix comes back — if the
+      // user has already navigated away, #nearby-section is gone and this
+      // is just a no-op
+      getLocation().then((loc) => {
+        if (!loc) return;
+        const section = container.querySelector('#nearby-section');
+        if (!section) return;
+        section.innerHTML = nearbySectionHtml(loc);
+        wireNearbySection(loc);
       });
 
       const input = container.querySelector('#home-search-input');
@@ -722,9 +746,6 @@ export async function viewCountriesList() {
     ${sorted.length ? sorted.map((c) => `<a href="#/countries/${c.id}" class="card"><p class="title">${escapeHtml(c.name)}</p><p class="meta">${countByCountry[c.id] || 0} entries</p></a>`).join('') : '<p class="empty-state">no countries yet.</p>'}
     <p class="section-label">tags</p>
     <a href="#/tags" class="card"><p class="title">all tags</p></a>
-    <p class="section-label">data</p>
-    <a href="#/backup" class="card"><p class="title">backup &amp; restore</p></a>
-    <a href="#/import" class="card"><p class="title">import shared entry</p></a>
   `;
   return { title: 'Explore', body };
 }
@@ -828,14 +849,62 @@ export async function viewCountryDetail(params, query) {
 // ---------- Global tags ----------
 
 export async function viewTagsList() {
-  const [tags, entryTags] = await Promise.all([getAll('tags'), getAll('entry_tags')]);
-  const countByTag = {};
-  for (const link of entryTags) countByTag[link.tag_id] = (countByTag[link.tag_id] || 0) + 1;
-  const sorted = [...tags].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-  const body = sorted.length
-    ? sorted.map((t) => `<a href="#/search${buildQuery({ q: t.name })}" class="card"><p class="title">#${escapeHtml(t.name)}</p><p class="meta">${countByTag[t.id] || 0} entries</p></a>`).join('')
-    : '<p class="empty-state">no tags yet.</p>';
-  return { title: 'Tags', body };
+  async function render() {
+    const [tags, entryTags] = await Promise.all([getAll('tags'), getAll('entry_tags')]);
+    const countByTag = {};
+    for (const link of entryTags) countByTag[link.tag_id] = (countByTag[link.tag_id] || 0) + 1;
+    const sorted = [...tags].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    const body = sorted.length
+      ? sorted.map((t) => `
+        <div class="card tag-row" data-tag-id="${t.id}" data-tag-name="${escapeHtml(t.name)}" style="display:flex; align-items:center; gap:4px;">
+          <a href="#/search${buildQuery({ q: t.name })}" style="flex:1; text-decoration:none; color:inherit; min-width:0;">
+            <p class="title">#${escapeHtml(t.name)}</p><p class="meta">${countByTag[t.id] || 0} entries</p>
+          </a>
+          <button type="button" class="icon-btn" data-action="rename-tag" title="rename tag" aria-label="rename tag">${icon('edit')}</button>
+          <button type="button" class="icon-btn danger" data-action="delete-tag" title="delete tag" aria-label="delete tag">${icon('trash')}</button>
+        </div>`).join('')
+      : '<p class="empty-state">no tags yet.</p>';
+    return body;
+  }
+
+  const body = await render();
+
+  return {
+    title: 'Tags',
+    body,
+    mount(container) {
+      async function refresh() {
+        container.innerHTML = await render();
+        wire();
+      }
+      function wire() {
+        container.querySelectorAll('[data-action="rename-tag"]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('.tag-row');
+            const tagId = Number(row.dataset.tagId);
+            const currentName = row.dataset.tagName;
+            const newName = prompt('Rename tag', currentName);
+            if (newName == null) return;
+            const trimmed = newName.trim();
+            if (!trimmed || trimmed === currentName) return;
+            await renameTag(tagId, trimmed);
+            await refresh();
+          });
+        });
+        container.querySelectorAll('[data-action="delete-tag"]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('.tag-row');
+            const tagId = Number(row.dataset.tagId);
+            const name = row.dataset.tagName;
+            if (!confirm(`Delete tag "#${name}"? It will be removed from all entries — the entries and their notes are kept.`)) return;
+            await deleteTag(tagId);
+            await refresh();
+          });
+        });
+      }
+      wire();
+    },
+  };
 }
 
 // ---------- Entry ----------
@@ -1405,6 +1474,63 @@ export async function viewBackup() {
           alert('Could not restore this backup: ' + err.message);
         } finally {
           importBtn.textContent = 'restore from backup';
+        }
+      });
+    },
+  };
+}
+
+// ---------- Tools ----------
+
+export async function viewTools() {
+  const body = `
+    <p class="section-label">data</p>
+    <a href="#/backup" class="card"><p class="title">backup &amp; restore</p></a>
+    <a href="#/tools/export-country" class="card"><p class="title">export a single country</p></a>
+    <a href="#/import" class="card"><p class="title">import shared entry</p></a>
+    <p class="section-label">tags</p>
+    <a href="#/tags" class="card"><p class="title">edit / delete tags</p></a>
+    <p class="section-label">help</p>
+    <a href="./Trip_Diary_quick-guide.pdf" target="_blank" class="card"><p class="title">quick guide (english pdf)</p></a>
+  `;
+  return { title: 'Tools', body };
+}
+
+export async function viewExportCountry() {
+  const countries = await getAll('countries');
+  const sorted = [...countries].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+  const body = sorted.length ? `
+    <p class="section-label">export a country</p>
+    <label>country</label>
+    <select id="export-country-select">
+      ${sorted.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}
+    </select>
+    <button type="button" id="export-country-btn" class="btn-icon-text">${icon('external')} export as json</button>
+    ${hint('creates one .json file with every entry, its tags and note text for that country. photos are not included — notes that had one are flagged as such.')}
+  ` : '<p class="empty-state">no countries yet.</p>';
+
+  return {
+    title: 'Export Country',
+    body,
+    mount(container) {
+      const btn = container.querySelector('#export-country-btn');
+      if (!btn) return;
+      const select = container.querySelector('#export-country-select');
+      btn.addEventListener('click', async () => {
+        const countryId = Number(select.value);
+        const countryName = select.selectedOptions[0].textContent;
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = 'preparing...';
+        try {
+          const { blob, filename } = await exportCountryJson(countryId);
+          await shareOrDownload(blob, filename, { title: countryName, text: `Travel Diary export: ${countryName}` });
+        } catch (err) {
+          alert('Could not export this country: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
         }
       });
     },

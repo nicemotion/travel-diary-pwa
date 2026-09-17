@@ -112,6 +112,54 @@ export async function commitImportedEntry(payload, photoByName, tripId) {
   return entryId;
 }
 
+// ---------- whole-country export: single .json file, text only ----------
+// no photos here on purpose (keeps the file small and shareable by email/
+// chat) — a note that had a photo is still flagged via has_photo so the
+// reader knows something was left out, rather than silently dropped.
+
+export async function exportCountryJson(countryId) {
+  const country = await getById('countries', countryId);
+  if (!country) throw new Error('country not found');
+
+  const entries = await getAllByIndex('entries', 'country_id', countryId);
+  entries.sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  const entryPayloads = [];
+  for (const e of entries) {
+    const [tagNames, annotations] = await Promise.all([
+      getEntryTagNames(e.id),
+      getAllByIndex('annotations', 'entry_id', e.id),
+    ]);
+    annotations.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    entryPayloads.push({
+      title: e.title,
+      city: e.city || null,
+      lat: e.lat ?? null,
+      lon: e.lon ?? null,
+      created_at: e.created_at,
+      tags: tagNames,
+      notes: annotations.map((a) => ({
+        text: a.text || null,
+        url: a.url || null,
+        timestamp: a.timestamp,
+        has_photo: !!a.photo_blob,
+      })),
+    });
+  }
+
+  const payload = {
+    format: 'travel-diary-country',
+    version: 1,
+    country: country.name,
+    exported_at: new Date().toISOString(),
+    entry_count: entryPayloads.length,
+    entries: entryPayloads,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  return { blob, filename: `${slugify(country.name)}.tdcountry.json` };
+}
+
 // ---------- standalone .html: readable without the app ----------
 
 function escapeHtml(s) {

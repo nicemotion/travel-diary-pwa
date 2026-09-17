@@ -144,6 +144,43 @@ export async function getEntryTagNames(entryId) {
   return links.map((l) => tagById[l.tag_id]).filter(Boolean);
 }
 
+// renames a tag everywhere it's used. if the new name collides with an
+// existing tag (case-insensitive), merges into it instead: links move over
+// (dropping any that would duplicate an entry/tag pair) and the old tag row
+// is removed, so the same entry never ends up double-tagged.
+export async function renameTag(tagId, newName) {
+  const name = newName.trim();
+  if (!name) return;
+  const tag = await getById('tags', tagId);
+  if (!tag) return;
+  if (name.toLowerCase() === tag.name.toLowerCase()) {
+    if (name !== tag.name) await put('tags', { ...tag, name });
+    return;
+  }
+  const all = await getAll('tags');
+  const clash = all.find((t) => t.id !== tagId && t.name.toLowerCase() === name.toLowerCase());
+  if (!clash) {
+    await put('tags', { ...tag, name });
+    return;
+  }
+  const links = await getAllByIndex('entry_tags', 'tag_id', tagId);
+  for (const link of links) {
+    const entryLinks = await getAllByIndex('entry_tags', 'entry_id', link.entry_id);
+    const alreadyHasClash = entryLinks.some((l) => l.tag_id === clash.id);
+    if (alreadyHasClash) await remove('entry_tags', link.id);
+    else await put('entry_tags', { ...link, tag_id: clash.id });
+  }
+  await remove('tags', tagId);
+}
+
+// deletes a tag and un-tags every entry that had it; the entries themselves
+// (and their notes) are left untouched.
+export async function deleteTag(tagId) {
+  const links = await getAllByIndex('entry_tags', 'tag_id', tagId);
+  for (const link of links) await remove('entry_tags', link.id);
+  await remove('tags', tagId);
+}
+
 export async function deleteEntryCascade(entryId) {
   const id = Number(entryId);
   const entry = await getById('entries', id);
