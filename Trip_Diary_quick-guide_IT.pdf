@@ -2,7 +2,7 @@
 %xxxx ReportLab Generated PDF document (opensource)
 1 0 obj
 <<
-/F1 2 0 R /F2 3 0 R
+/F1 2 0 R /F2 3 0 R /F3 4 0 R /F4 5 0 R
 >>
 endobj
 2 0 obj
@@ -17,17 +17,17 @@ endobj
 endobj
 4 0 obj
 <<
-/Contents 9 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 8 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
+/BaseFont /Symbol /Name /F3 /Subtype /Type1 /Type /Font
 >>
 endobj
 5 0 obj
 <<
-/Contents 10 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 8 0 R /Resources <<
+/BaseFont /Courier /Encoding /WinAnsiEncoding /Name /F4 /Subtype /Type1 /Type /Font
+>>
+endobj
+6 0 obj
+<<
+/Contents 13 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 12 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 /Trans <<
 
@@ -35,438 +35,109 @@ endobj
   /Type /Page
 >>
 endobj
-6 0 obj
-<<
-/PageMode /UseNone /Pages 8 0 R /Type /Catalog
->>
-endobj
 7 0 obj
 <<
-/Author (Travel Diary) /CreationDate (D:20260815115510+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260815115510+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
-  /Subject (\(unspecified\)) /Title (Travel Diary - Guida rapida) /Trapped /False
+/Contents 14 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 12 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
 >>
 endobj
 8 0 obj
 <<
-/Count 2 /Kids [ 4 0 R 5 0 R ] /Type /Pages
+/Contents 15 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 12 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
 >>
 endobj
 9 0 obj
 <<
-/Length 6614
+/Contents 16 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 12 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
 >>
-stream
-1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
-q
-1 0 0 1 62.69291 757.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 0 Tm /F2 22 Tf 22 TL 171.9699 0 Td (Travel Diary) Tj T* -171.9699 0 Td ET
-Q
-Q
-q
-1 0 0 1 62.69291 741.1969 cm
-q
-.392157 .439216 .478431 rg
-BT 1 0 0 1 0 1 Tm /F1 11 Tf 12 TL (Guida rapida - tienila a portata di mano durante il viaggio) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 724.1969 cm
-q
-1 w
-1 J
-.843137 .870588 .890196 RG
-n 0 0 m 469.8898 0 l S
-Q
-Q
-q
-1 0 0 1 62.69291 692.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (1. Per iniziare) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 656.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL (Travel Diary tiene traccia dei posti che visiti: un titolo, un paese e una citta', un punto GPS, e tutte le) Tj T* (note, foto o link che vuoi aggiungere.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 637.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 637.1969 cm
-q
-BT 1 0 0 1 0 4.5 Tm 15 TL /F1 10.5 Tf 0 0 0 rg (Vai nella scheda ) Tj /F2 10.5 Tf (Trips) Tj /F1 10.5 Tf ( e tocca il pulsante + per creare un viaggio \(dagli un nome e le date\).) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 604.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 604.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL (Tocca il pulsante + nella scheda Home per aggiungere una nuova entry: un posto, un momento,) Tj T* (qualsiasi cosa valga la pena ricordare.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 572.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (2. Impostare la posizione) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 551.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 551.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Quando crei una nuova entry, l'app prova a rilevare la tua posizione GPS in automatico.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 518.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 518.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL (Puoi anche toccare un punto qualsiasi della mappa per posizionare il pin, oppure trascinarlo per) Tj T* (regolarlo.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 500.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 500.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (I campi paese e citta' si aggiornano da soli in base a dove si trova il pin.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 447.1969 cm
-q
-.05098 .188235 .286275 rg
-BT 1 0 0 1 0 34.5 Tm /F2 10.5 Tf 15 TL (NOVITA' - centra sulla mia posizione: mentre modifichi una entry, tocca il pulsante a forma di) Tj T* (mirino sopra la mappa per spostare subito il pin nel punto in cui ti trovi ora. Utile se stai) Tj T* (aggiungendo la entry in un secondo momento e vuoi riallinearla alla tua posizione attuale.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 415.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (3. Note e foto) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 394.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 394.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Apri una entry e tocca "add note" per allegare una foto, un breve testo, oppure un link.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 376.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 376.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Puoi aggiungere tutte le note che vuoi alla stessa entry, in qualsiasi momento.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 344.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (4. Sfogliare il tuo diario) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 323.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 323.1969 cm
-q
-BT 1 0 0 1 0 4.5 Tm 15 TL /F2 10.5 Tf 0 0 0 rg (Home) Tj /F1 10.5 Tf (: mostra le entry vicine a te \(o le piu' recenti\) e ti permette di cercare.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 305.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 305.1969 cm
-q
-BT 1 0 0 1 0 4.5 Tm 15 TL /F2 10.5 Tf 0 0 0 rg (Trips) Tj /F1 10.5 Tf (: sfoglia tutte le tue entry viaggio per viaggio.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 287.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 287.1969 cm
-q
-BT 1 0 0 1 0 4.5 Tm 15 TL /F2 10.5 Tf 0 0 0 rg (Explore) Tj /F1 10.5 Tf (: sfoglia per paese, oppure per tag.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 255.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (5. La mappa) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 234.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 234.1969 cm
-q
-BT 1 0 0 1 0 4.5 Tm 15 TL /F1 10.5 Tf 0 0 0 rg (Tocca la scheda ) Tj /F2 10.5 Tf (Map) Tj /F1 10.5 Tf ( per vedere tutte le tue entry sulla mappa.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 216.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 216.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Tocca il pulsante di espansione su una mappa per vederla a schermo intero.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 183.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 183.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL (Tocca "download offline map" nella pagina di un viaggio o di un paese per salvare quella zona e) Tj T* (usarla senza connessione.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 130.1969 cm
-q
-.05098 .188235 .286275 rg
-BT 1 0 0 1 0 34.5 Tm /F2 10.5 Tf 15 TL (NOVITA' - nomi dei posti in inglese: la mappa ora mostra i nomi di paesi e citta' anche in) Tj T* (inglese, pure nei posti che usano un alfabeto diverso \(per esempio Thailandia o Giappone\). I) Tj T* -0.121634 Tw (nomi delle vie possono comunque restare in lingua locale quando ingrandisci molto la mappa.) Tj T* 0 Tw ET
-Q
-Q
-q
-1 0 0 1 62.69291 98.19685 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (6. Ricerca) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 77.19685 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 77.19685 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Usa la barra di ricerca nella scheda Home per trovare una entry per titolo, testo o #tag.) Tj T* ET
-Q
-Q
- 
-endstream
 endobj
 10 0 obj
 <<
-/Length 2678
+/PageMode /UseNone /Pages 12 0 R /Type /Catalog
+>>
+endobj
+11 0 obj
+<<
+/Author (Travel Diary) /CreationDate (D:20260918062747+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260918062747+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (\(unspecified\)) /Title (Travel Diary - Guida rapida) /Trapped /False
+>>
+endobj
+12 0 obj
+<<
+/Count 4 /Kids [ 6 0 R 7 0 R 8 0 R 9 0 R ] /Type /Pages
+>>
+endobj
+13 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 2959
 >>
 stream
-1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
-q
-1 0 0 1 62.69291 761.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (7. Condividere una entry) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 740.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 740.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL ("share for travel diary": invia la entry come file che un altro utente di Travel Diary puo' importare.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 707.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 707.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL ("share as readable file": invia la entry come una normale pagina che chiunque puo' aprire, anche) Tj T* (senza l'app.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 675.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (8. Backup e ripristino) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 639.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 639.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 19.5 Tm /F1 10.5 Tf 15 TL (Vai su Explore > Backup and Restore per scaricare un backup completo \(.zip\) di tutto, foto) Tj T* (comprese.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 621.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 621.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Conserva quel file in un posto sicuro \(un cloud, il tuo computer, oppure inviatelo via email\).) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 603.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 603.1969 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 4.5 Tm /F1 10.5 Tf 15 TL (Ripristinare un backup sostituisce TUTTI i dati attuali su questo dispositivo: usalo con attenzione.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 571.1969 cm
-q
-.078431 .270588 .396078 rg
-BT 1 0 0 1 0 4 Tm /F2 14 Tf 18 TL (Cose utili da sapere) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 550.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 3 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 550.1969 cm
-q
-.392157 .439216 .478431 rg
-BT 1 0 0 1 8 5.5 Tm /F1 9.5 Tf 15 TL (L'app funziona anche senza connessione, una volta caricati dati e mappe.) Tj T* ET
-Q
-Q
-q
-1 0 0 1 62.69291 510.1969 cm
-BT /F1 12 Tf 14.4 TL ET
-.078431 .270588 .396078 rg
-BT 1 0 0 1 -4 18 Tm (-) Tj T* ET
-Q
-q
-1 0 0 1 72.69291 510.1969 cm
-q
-.392157 .439216 .478431 rg
-BT 1 0 0 1 8 20.5 Tm /F1 9.5 Tf 15 TL (Imposta un viaggio come "attivo" cosi' le nuove entry si compilano da sole con quel viaggio mentre sei in) Tj T* (giro.) Tj T* ET
-Q
-Q
- 
-endstream
+Gb"/)?'F$O'n+];_"^Jr2`/?hqPDY%+3dLE3jmZh]jN9[7RIeD5LaCrI1JRUJ4)sZ3P1\A`:g:>QbWcDm_QRATIKF$Qg1237EAh;jNVn5d"&4+KLT99<^2ac=,YB4cVLkqUr3X=5L)%DKm<_5Bm,CQS^S_RZ7O<mSB#:U-\PA[jCJ/<!rh[j2-crVQfLG-8Xeg0qo[VJ5P?9>,U<i4JAu:)bLe;LD+71'8-4jL^7SS54S'95`[_gb/b6b(abfPPAuFZ,9<g1W1:D;eBth;j!<fQV[n*KbbqPQ%R3-[)T1:1"4eDq`Z:(:6K#q[,-F"Aa@2Lu+68(CnA1Z"G*F%gJW?2]3.7HLc@n\3W0UZNaCsHcb:\46n9FNF.k5l:7MK>IU1(I>GOu'"J@"3."WlT52YQHQ#2hEpeHVIQ@+fheG5;/cg9k**n,NO+]8%BKB@oCQg"EQb)S4k0H\K0r3?>LHmfNs!-K-2IGhfY*0mWhr-;LIJ7hb-8D%",6e6^rVnpWfk[2<K3u/7KUQb;:q-a\_pZ*lnqHn\>N#J.@bLPDL)9VX7=6<\AoD%e;Y=l;K?)1Qk3k(.;F1_E*?XDCZ`3N50%.6EKd'gu*>_PGN5q3n_YEie(,@F_hQ!UN^LYo:"E+f/>2$3hOtc8#oa>)YRM(j#<#/d!A!D+?tj=Qi`?*df@l%rni=pG2e<_=5lY_U60HU7Dg+R,^89;UC`g4W=uH`"mh'Z05If^Rb:<R2Bch+:T3"sfQc)Kg3?Ie^"<jdGYp[g@=ttt4?Bm8Y&.F*EGj>i6gL=gWSZY8::rd3[_"\-8T5:\KI^!^NfM#BW@\[miQB\'M4E+!K8!lK.ik)[e2TC[Rjg>U1/i>4KeaG@R2[c+3?a$[3:iTl9%PsRa>c+oStU:.\BoRB^^8V>g$r:AKs=Dt;_@JM?IPZ_"^"(O-Vh%#-pl800$Z0g<9CX;Yt]IHk7d!$$8u(2W]"$g3WMn0B]\J-(Q?=EdAa6iD<$5,F0k!H>5(EXoc=?WU@jT7[M6+gYb*$GB9b9(9Gg7#nCZ?RS`8u$$5aU_8W<^E<0->b#ZU>soOeM&(":NY)'7dMZ%u6JUFaO:Dn^)IWs/a)A=f8DqN7uN[Z/\fFenmuKqPI9..?]182$A]N6Kc*apU)(oE(IX5pLn]Pb[7RZW2WY_Z\t=!a9.dh_gpd^*[tU&!@oS8Wu[)Wf_cL5>=EPVKg+3'2NfuJB*]7`79KtaMGmFcXo\5CRV,Hlsj!Of%M"$Q&C2C__SC*q`D!.,&6\ig/\jRps"#V%=r]2>R,7(5,5%%VG9$e&=-e_c2a:8'E4#Cq4T.:KLBB^_qV>&c\9W9DSUt?'J>a,SVQRUP2=;q01n\:E9TEl/&g8@<tsiVq%]m&Sgi#p1:X(+&E_*n2-96X`LYZG!+B0p[)pF9\aS-YJt+7`NPOL`0@h;Rr1<FZ4:p@qjOL_f,PMU,5=f.`?f(iQ)ZMG+pkEo6]0J7c^Pr!5Kk7r^O,p-iYtd3/X^C*.LH=i7>W8.BCo9UDiaNGM2(SJs5Xh#B6aPrCC@H?V<'O?/#\=3@<8;GHFe(L^_+bqopRhe<TMaUgMKPY$'sB^gM)RijC,$KjTogV.m+?plZ1t[9@oMHS[B,.'KITM`:sJ*R1rhDZGb.nVYoj">4Dn.?_/Gu/rdqrZohG`r;r`&O&PY2I_c1MGr;Mtos0%m(dSkBZ`g"R!Q6RW'mTJ3MedCbuQG$9sD$8QM%/bRiYDd:C;sCrFbkfu$%sg7;.AZrDo:89Mn=CtGFJOkFD.06s<Oq%A&M1!-S[r5UMZVG6"A37++Ln?N>`VOY_0!D)H*qQiC2(Y^-ip)*o_%C=PHH85H\1NuhotWuC=.*s(3n.Q-HtP;5E6P/V!W@f%fR04lqhFA?U8ra_qr'$b?BecpTHcn^mW<rN&8@FV"k!N_9\5&*-pCtY#E-+Bn#"5:=`=.-)K!M0e51%<^OE@4]CT5Q2-l4mlu2!aC6+[JUE0Q;-2,K'PFXVE`1#=fYV8M5ZIYs%fGS9)s5JGC82Tu]I)O]@>E>qK6Sgd_:CmWN/o3HNrr[f2Is@`E\m<1D.<6!7qV_q`LPs6<4@5-FSCd!?B-!%+t#`I8fT7(_lP]-BnqK.F7Lf0On@ecEU:>-<(ngT\"ppp&lim$U&+O'#sQm(5E%6cN)mY'NeC^TGp.<!h@hOg,B]%A)F'#OO@IscO;@p]<82)"*9kK-=DM`F-Y2;#r.#UhP%,Q<F/K>4LY"IVpIqa'\1/2+Z.E^X4p%&u)=p.\Ga5_"V"(Z+Za.]h%EeB1V-k$3Ff;UYQQCD_*P^Qgl&Ac**FL`'Bau0jK0rY^aog?^W)mN*?k<^5KM(-+#q\W"dL:hCeH'.+$)jAJW7<0uF;A,];qYDg?.=t0Gu]6C92O7nQ]`M/">ilZ"SerLq*ZMO#q@Ad7k3Wc?1@K0dEBqf2cN\7%@'VZH`.Y-H`.WJ(TDLj;>U!WI2S<i!^3d0k!Kknc)EXV:5pYc$,5@ZF!-&l<4D9AO?/l"GD]Pg26)icHpAV1ORcbaXJF"D+P]Ins)R0#"9sQ6%0EM81JJMFFY#U&G4mL_qaA2YmE880n0#nod>eR$`qK(mN)XU)+aheEG>KnGfBnnQk@]:7;/\UmL;1PBoq+RA;EFLTB2k=3?Z8KB\p\`m?%L-brs&Ts>1D,H]M\L2::OK+P+pnD)[FiWj/%ZG1IIJY3F1OXn.nMrX\Q)8D"6)SPS+nU\WH(.%4>3q?b#_)Ppb0r'e)WYXHskqre<T6!.h"V41r^k=M`SN9u6+S/ENF+NJ>ac6h#[4q"Xr@D)P"nh5A8kn%[*:oB*hqhCUYV+,`VE-mJA[*ebg$4#YmM9[XUh;!N/T/]3jMWdi+_S`$LjQ26fQ_)YdZXAMY?^ndjj@#E[%kK]52l@U'UYp]s9db*jNAQ9%:27elHAiL>$T.E]kZ9]9+#;&%?Rf~>endstream
+endobj
+14 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 2324
+>>
+stream
+Gb"/(gQ(#X&q/A5'`=a015C(9c;PL_ZO>i'@td%i93Z5S*E1cLfpl4+lZ9(q+uQFEE!Ec&^r?K?`kJ%E3iAtt;2E!.]rlQIs&d[nRu!f+<Z?qE+JmW7oQiCl1lM3m=WZX8>Xl(oM]aM@'(bTP#a[uK6kmS_0ImJ;Ott'Re8/b9oC+$%Q[!?mD8)VGA]"Hq.+9r1n]#';5<*e<Qcl$Mb2R)0kRN+dLGO\QN,a>6r#-$2M'H3_2QQ9gSit5qnAfr23Xmhc*bE"6c'oPCo.M&oHmtN!1"O]g*&#(%eK=a@qH6Z$>b[F+Sjh53f7H%8BYt3W;VT4$n(Ll0HeHc:XCP6;'%F'KaC]'UBe(./^^s5"Z=7#g@7B*tp31n>^JF:jh9gZBGd(11f]q9q@n+lGZS?r1qVsAjq-LFoXjj:2M0noZ;^r;>Ag)%46q%\8))a,<GaZ+Ap\4DJX/lWYB(rYq(KBFfZ.SM:Cq$FngF$k9_:j>7lK75CRjq.,ZXtSd>+;Gb?+@Q8GPSO,o".E)@[nN<c81'hfou[Obl!1Jok#pP+48BI04Fc09#_D@+^Wd,1aqCka:%t_N[$k3Yb&*ep!8C(mLf57Fu1&"Nu)hX3ArKm_I%<Tc3TN&3e%`p"],U?G3O;K!;I.c,WnK3Q,%eb;EdY,!OD\)"`HX*`DgTI5Z*8HX`d<pl.4//@q-QeK;.pMa!7Wko=E[il/V:W-B)hf1!$Q"pXZ_&SG<'\'j1ZK%=6h<fuaK#Q*n(m)D2:h99T"G<IZKn-2mK0hpa.TTf(QNY/^mCNr]"*M7Q[gcZ`t+=s)d8rn8TRELl7FFo[k^#02qpXHcaXC-0O(+AZM6'Q(q_2iRI6OL'"91Oe.sP/kW4%=$fPX7XumU1"I=NE5=/KpU'(5pU4"G`\SiF`"(b')!0XG5+hJ0.S^8Q[V^)/dp*mjaL9)mUs45_n4ilQ*Bhl1]D?HnH`nVC?-):@`;M.C>Vd;.(om`nl[\>Sd!P7CsN.3-pY_U2+H79RiKkA3%3q!ci!Hcp9bc,4;jR?SS<NlBDKZNrYaZ?mHIJQ7PPm\JZGr9^o?%WYYr[L[_DokmT)(0ODJ>NG()PTm2G%P<JO+)fFmLPK+q/Q;Z8ie`*o/h=;B2tr!.9$JkHt'/WGGNob]*Zh!LR[9U!GVW-DMFXl>OE4Sp$HNq?/PF=B@Y^=3"<anOn:(UW<aNqsmqD6$YiSfC5$`B/H_Ho6T\>gUc%gJpn`>'24J8Ch%B(C7N?=t?,GOHrRqD'qg/&6l"=KOr-?&7FYjcq'?R-GlAUZ^5)3`C7dRmQm2BoQ8UcZ?Uk!g$XQ3?#nD;%S2Z>[6!r8^50aMh3g?(_/htOP+=Yl'tX?M\*Mf;ge--Sg1O!BP,NRHa#,<[R.<qjFkl3!(CsZSY0<!U+cgG-]4N,d0>li*e\u.<S.0jsjHrN]((Mf0AG5m1^`9oeODSi)L)sp,Epc!Bk-1"I"",ll'j@A'ZX'E7]W$nIp7I1S,>Hg4g<CT15QTU':S""`PPc@pR"!gL/;!MXJM]t#!F?K$RZ%-q=:g<t:3!3b*3?RBdC!A@^bu8)eP#Wt!M9':=$I\\8XRF"8))M>qF0];H'o.m4dU6_9\cNgnG_0Q):>!A3%2;.m40I(m+n!u%gf.rU?:/;Hk#623W4HtahFf[Ts8q(EoSr9>XTY718XsZ8:Na=Y0<<CreVjN%]AYM;khtBaF&P$q8LF)^,Ap-bnSf.mNt=pI(?ob(<Wu@A]=0pYf`eMks7N>jsZB8X1h+jT'a;-mH`pG>blptODP?%]fRi-7\'^ihHcWq3&jEii?hY8Sl0(P@<kqA:Op)KY32c<oCOYJm^eqaZn?!?guZbPe)efFeE+>@0O8C6Y13Fg?-X7O\_"5$'q*=DAhASS]R]9CFU?=p)Mun,qaq-$"^S0t?IT1on2p\R7'^3f1O>ClY-MIrD:D=BDjOk`#)0."d1&1,:BF7M+.6EEO!(!Gdlip6`KTnm>!CS61>c31462=RD0h:6bkIYGhgW?pc%H4OGXD-\#/"%90e21tl_^Y(;uRNsVU\e.5Ao=+Mn`hXJ%ipPJQBjm0q?4K3b6!_O;OGkM&/M51d4F32r_O3s'o.N=sY/]dSU?n@n^'g'X'S]+Y/JFjo<=ke&_3h-?G]'RbI7\]prl:\kH[K1!./+KYkUtSQkU-Ebf2p8tY?$](M(E9o`ZZjC`ub4)DmT"r!>[_AQPk;mFugB>^plR*]-I=6[q/A7)mgQt@r%JiKPP*tHPBha]X.Z>[0PhWLFS[h]^L4PLW1!;e`:.WL5acLcDRO:=@5?kJD)^73O:0;Cta('~>endstream
+endobj
+15 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 2509
+>>
+stream
+Gb"/(8WVWG'#*[5'QOK?5c2(FIOE20>6$%,*?B:e+aZ$dPML7<.4=`Q?WB$RC+O@Z)AqK;YRM!eoig\U<A=Iqrs/79f`:r_L)9k"+:)D(%70@"Y^Qgqf8EF_TV%XJ?<W"N!*KqZ6'2qm%YoHoXLF,*%_gaB4B_,?8h7R0cgj$sYDDBaGY+K^;*m@c72S?&5\$FSkMo.]pq[F!hf9<U72Y3%:>bthL//IT][AJtI'>sdlJcJ4/jA.5Y.agKiVA=;jPU40@U>G"@?q<Gi^DZsS<.(2MhrY`3HNNm;+Y'slNW[.1KaYXl^qk=q]frG53,IiT%->]k@?dA!kbI&nYcB!;0sH,g:.M9r<74&Iec9o>aOg&8T`P\rd!-@%1a3_O"GU(G6j)$@ua7I"[9'p:7cb>b>"'Y1%-TD<8-g7h"U_+:,?"%`llh[c;gAOp[.p>_%kFf5p\cX3Pfh,?e'+7hsAJ*Am#HI/T5e>1hS]7a2d5+YR/2U)D57=_3A-iL&8st#*RTJg9_2:?Ip0mC@S)=IaG5n1+X^fd'E$GkcCr+f`IL_$CEGaE'JJSN"[G3H2=m;\4lGm6Znm$DHSJdpSJ[GgF9+009"O>;BCTg1+8F-M*!"6/oRk[:(;fD3b*l$faZ61+:F^B=TO:IR8u+(BR%W.CYShXV(rHs``nQGX_H0FP'j,No9/&H*Y)8?ml>@@Y]U^GZ99GeT17A1+k'"M`a@2TnRKe!nT+u*lV?:DKc4S:r>C8c2/COW:IUCSojcA6W[=LIm8f`3#c_miqAnUNcd63c%@VZo%XQR-p^TH.TdP<kk]pre[DM:Cj*JS`P9?)6bP29M'@$rS?b#G4SfNeo[sKYb@?R4,I6RpSs!3Tna";bB3Xd%Fc"WueZoB9q=?R%D,YW<sk$q*51B8fEMSCt*]\7(n#ud?=om)"N)SZd1$E,m\'!EXt^L-!+(.*cQ@9X+5I8W`N!elgV7BSa<$W7(5EP*$<6)bIqC:-KjJB1_G1BSPYA5_OH*ZAA8/_:752+er?>mY42oNXk`n?,k(L3HYl@Uco+iq$'Tm3[_hF7;De7#rr1P%R*M''K!V7@]'%WkTq18R.UY&ArSeMl*@.HiSsH0)Q8&1cKTA@ll]o]KF5.4g'&1N:,cU1aQr1!fhI8dR.KX1HR391YAL&Yl%MgKiPg-DN86u[qlI+qXqcVpULZWID6nZic'GT]Ro6KWS3;6YaA%7nJ=R52a*uJF"b-l?I((Y#C2BJg6<";&TcX&PG2#q/S]`kGhsN3aij<XW\HB!:A$%F9*deu:rGs\<J`N^LG`J=)HGV<::O_d[>%=NPi_c;Po)iF+q\B#aGk>G7k.[2Vc)&I+X%(i*kXiN<d:L[)]Bpr6C)b,phDdGp1YB3,3^eoUt&Pk[p.Y^?^A_G=gk7S3Nt[(4*J@T\-*5t8nQag8L1sfZHSfa']RVl+P*=W4"Zsq$]?C*KtggSh2;n#7GaaD0Dh2doBZObqr)hioH21/Ct#&T'aI(1':UBXgf9IX@.7$@I-PMV2Tc*\b(f>eWsqOK!6oZg6]=>5"$t[,H[,f!"8I\p6,9/6&4u)F+.H1go\fI-phP=Q+\8k/9X)HK_@JL.PiEp(a6;rCC,s"KSWHkaOL&7QMU8upBjRMVi\]dmPTJosi+`s<a1.R!cO>FObu<+MI4,T0ML%cp-11H2>2X@SJJKSPJIc#N&$SZi#?W"t>QUrtE!`U8dtPW&:kYj9__-^>2!f^@qq^r^Y-e%Acuk(XS5M&K[*Zi=2hnDk^fP^CUmpHLLih+S47i$^Mi2J]H%q@23JaVe(:Ub_?_pdLZOhf(Y7Xi>M?NKpl\piR\j"6oNbC8u;G5'7.oG'4KYiRgX_Ns*QX_g@4-1,nC"A=MV'&HRnrj56h6>TkG:l.>#kQHW?6&+\GJok<%+JT%%Yt_l:B299O2q`l2J(1`[$(\)PO.&R[e&2Z5F<D4b1B5fk3"n)JP%Wpf+7&eHm+Wb;2DaMV'Sg$D%X6Dc*5of9s*f,+qCa2L2U`m"K>+[L-ndo`c>e<02!UPk3hY"YgQQ;"l<UQVPAni$EM^,J?>65f+/V.Wh&rtgY-X]b'I0sYcX"I<L5Y]AOL0?@('>r13D-t27<g0.seYYbu(A<5c-s:I*\%`1M-%YRIXukIdD5[.r'W!5]:6e8<eARo>1%N:?`S*if\3BPnW4K7gAUEY"oU(o[CmSq,`IO..-a9i_^9uWSrj5/8N5)K2A&6G:Rib\MH]IheG!LhRh>c;CYmsA*EAX%=H]mk@7T1",'-SN-eU+Iddh,/hL3oB!m"RmE-1Ap6siUg!kW(KRJ+J]O@1=CjBMoA=715V@A-6pVc,D?VfGHV98eqqus72C3kT+fCKOsbe7k85Y@>.8rGQ(Fe2[+.`)_ac]X^`:uo`gW[P/Q;)GI+MN4a3kV6(7GYqK5R%ieEMe'crs$r>D@iiNs#bPr]W9c\>asu]NZPMl`R[X&\8L4QXPd81>6sih4V"&-"pBt+$+*Wi^AH~>endstream
+endobj
+16 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 1770
+>>
+stream
+Gb"/'8TWWE'Y`m7][<FJA/q&rcJF^Xd\`3Lgut[E6;\(f&thNg:AaAS!F/#q9B=;Rc(W^U)]jO=HuB*3(I)N8=\87#8[iUU0oqV>@Y#3>niaZhcL,>HV[Odt9"gHdbS#]-;2TW9G2,%`Hq',4]4$kaj/3JQOl"A/k!b41H@`-BC%H`7UqZXL-Oiu*_p-O4*H>JDj4Hqd1muR-/H[+5G]YNu?I'e/Z;I!Nd1XkYT-*XL,"an>&#fHB#n?h@f3r!I,ZsVg=D/JaIHt;d1VBFQ,19pL.U%+(r/?r6Hg^`%b_;54dG7Kj?WELmWTlroC*e;h;WaG!JgubB;JEu;1&J;Zke?/!Xf*#RZ`Gb5JkJP#cl"d"OKI5F(02&,Q3BhI)CZGZ.UL_]32WfS=peI)U&_B'>;W'R_ZkjBC/fokkPZd-*p,DWWiCaVjoo[D4f8W,C/KR%Xp\g.D<8"`_X=(ei>p(U_scGgmj<dF]FdQJ#bnq0.#X7%K!MRf?p>`h1GbQ>g5JM6_/>hd>+j,&R$LT`mkKb?14T>N%H<i$![e.$U;X^THOA@9A70*k+!9h\*,7AT`oQANG-:?<2fo(ALNSP9?4qO'3/Y49++q^rTcQ6GngJ[/KAQk(%Q(q%L[P_g^Yl!p52gW:@6"U?%MH,J@]<=(?Z4mOAeP7flnNWEc\q_#gKiu.98cl0As"OaM,WkoHc7RighJJ;(>q;qcNVj9kCs2m][?jX5@.ePoAScUC"fF]E6u7J5@gC,\Au&>HHf#h9GrV$"RX,[#EefW^ct?f*U>:J:?sJLo[\#lGCW>D>-YSq9o&5CTX9V?:%,9s!:^^hF5878+2Qo<*:F+Jk=o52h:NQL""gN,;)>CO+^qc4Yu[uu>p6NNDi&k5m^+mLHK[2lGZPA!F38'hs!%6a>3nZ%^FgB*a,_b(mqOF4!b(&Rnj8QB!]GFQKi$/-/C[r58)psn"i?/Z'lI)D'XGp(2>$hHPO$c@ec--$oppc(Mh3/]frW2olM=I!V#Io(bL/,s\t5Phn^DRH9-d"?"X54tSWG4.j6KL<Cd"%1;20PXA_kK\]osihA_nR",!G'W^/:h#qpEs#@9NW8#HYQl3a0*:UGA/fXn.-.C@tCJPCM%2o9ZBf^]eK>_]lZ]<nAXQ".E+rNlWst%#(.DRNE?Ya0piRbJ"hg;r]l8LKol`/4HdqGt<^..YpbWL$R)[V&56OLgCpo\7)C!G#O-?m&%c_:[+bSkUG?;!4<ILe2a3&Y,9>&ha5H_)qq7".,$TEM^daob-b8ZNRgN"UV2LXNn`[Lg8Z[V17`Kd9qF:RFf'7-Gb`W'_9ugPKD)?t[_rHP)nTu<Hd<to2G1!45G@$B-6`+?!Q*Q%TWfec6kda3'L";4Dts?k0TM6KJD_]$cq732>Pd@r$pRk,+coWaYRX$Z$Mn^-5W?8*TV&gISK"(.R==V52InII.hl`8,77@_;pA1\?Vum\ak,0-f=*$H$f9!G_!g)50FtsCd"upF%\0AB<"=la0M7mH&uj^u!8Os4Bn1#6)NPe#`(_C&o=?j*FOOZ*'aS(_f;ORq^)b=p_uf`LOj!KoF,KJBn"bg=7ZUPXlI`Zuh06a0G`X$7gmg<_fVpmflBNFqkf"m(,S4=_-9&soTWWr29j-54@(o1dc&E*sVEj!nKfU"ss)!HRERJj.5'BtTs#H+*[WAjIW==RfT_G>11rhXjM3-tq_Cf<+ol(UfRt!/p"7c^9-*E5J%.\(E>$V6>9N;@o]P+\+*<D+2rrA'M`Zb~>endstream
 endobj
 xref
-0 11
+0 17
 0000000000 65535 f 
 0000000061 00000 n 
-0000000102 00000 n 
-0000000209 00000 n 
-0000000321 00000 n 
-0000000524 00000 n 
+0000000122 00000 n 
+0000000229 00000 n 
+0000000341 00000 n 
+0000000418 00000 n 
+0000000523 00000 n 
 0000000728 00000 n 
-0000000796 00000 n 
-0000001089 00000 n 
-0000001154 00000 n 
-0000007819 00000 n 
+0000000933 00000 n 
+0000001138 00000 n 
+0000001343 00000 n 
+0000001413 00000 n 
+0000001707 00000 n 
+0000001785 00000 n 
+0000004836 00000 n 
+0000007252 00000 n 
+0000009853 00000 n 
 trailer
 <<
 /ID 
-[<f3a3439d06e2c82a8aee0ed9551f9af5><f3a3439d06e2c82a8aee0ed9551f9af5>]
+[<ce591e7569a9bf1864f9c87e35a451ed><ce591e7569a9bf1864f9c87e35a451ed>]
 % ReportLab generated PDF document -- digest (opensource)
 
-/Info 7 0 R
-/Root 6 0 R
-/Size 11
+/Info 11 0 R
+/Root 10 0 R
+/Size 17
 >>
 startxref
-10549
+11715
 %%EOF

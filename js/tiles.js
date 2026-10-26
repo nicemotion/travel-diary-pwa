@@ -6,7 +6,30 @@
 const TILE_DB_NAME = 'travel_diary_tiles';
 const TILE_DB_VERSION = 1;
 const TILE_STORE = 'tiles';
-const TILE_URL_TEMPLATE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+// ---- provider delle tile ----
+// Per tornare alle tile OSM basta mettere ACTIVE_PROVIDER = 'osm'.
+// keyPrefix separa le tile in cache di provider diversi: OSM mantiene le
+// chiavi storiche (nessun prefisso), cosi' le tile OSM gia' scaricate restano
+// valide e quelle Esri non si mescolano con quelle OSM.
+const TILE_PROVIDERS = {
+  osm: {
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    keyPrefix: '',
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  },
+  // Esri World Street Map: nessuna API key, etichette in inglese (da verificare
+  // sul campo). Attenzione all'ordine {z}/{y}/{x} nell'URL.
+  esri: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    keyPrefix: 'esri:',
+    maxZoom: 19,
+    attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a>',
+  },
+};
+const ACTIVE_PROVIDER = 'esri';
+const PROVIDER = TILE_PROVIDERS[ACTIVE_PROVIDER];
+const TILE_URL_TEMPLATE = PROVIDER.url;
 
 // 1x1 transparent png, used when a tile is neither cached nor reachable —
 // avoids the broken-image icon while offline.
@@ -62,7 +85,12 @@ export async function countCachedTiles() {
 }
 
 function tileKey(z, x, y) {
-  return `${z}/${x}/${y}`;
+  return `${PROVIDER.keyPrefix}${z}/${x}/${y}`;
+}
+
+// inverso di tileKey: toglie il prefisso del provider e restituisce [z, x, y]
+function parseTileKey(key) {
+  return key.slice(PROVIDER.keyPrefix.length).split('/');
 }
 
 function tileUrl(z, x, y) {
@@ -110,29 +138,15 @@ export function createOfflineTileLayer(options) {
   });
 
   return new OfflineTileLayer(TILE_URL_TEMPLATE, {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: PROVIDER.maxZoom,
+    attribution: PROVIDER.attribution,
     ...options,
   });
 }
 
-// TEST/PROVA — overlay con le sole etichette in inglese (Carto), sempre
-// online (mai passa dalla cache IndexedDB). Va sovrapposto sopra il layer
-// base esistente: NON sostituisce le etichette locali gia' disegnate nei
-// pixel della tile OSM standard, quindi in alcune zone si vedra' testo
-// doppio (locale + inglese). E' solo per valutare il risultato: se non va
-// bene si rimuove la riga che la aggiunge in views.js, senza altri effetti.
-export function createEnglishLabelsOverlay() {
-  return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
-    {
-      maxZoom: 19,
-      subdomains: 'abcd',
-      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-      pane: 'overlayPane',
-    }
-  );
-}
+// NOTA: l'overlay con le etichette inglesi (Carto voyager_only_labels) e' stato
+// rimosso: Carto ora richiede una API key e sovrappone la scritta
+// "API KEY REQUIRED" a tutte le tile. Le mappe usano solo le tile OSM.
 
 // ---------- pre-download around points ----------
 
@@ -190,7 +204,7 @@ export async function downloadTiles(tileKeys, onProgress) {
   for (const key of tileKeys) {
     const already = await getCachedTile(key);
     if (!already) {
-      const [z, x, y] = key.split('/');
+      const [z, x, y] = parseTileKey(key);
       try {
         const res = await fetch(tileUrl(z, x, y));
         if (res.ok) {

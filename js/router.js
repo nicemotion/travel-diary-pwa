@@ -43,6 +43,13 @@ export function buildQuery(obj) {
 async function render() {
   const { path, query } = parseHash();
 
+  // rete di sicurezza: se una mappa a schermo intero resta aperta mentre si
+  // cambia pagina (es. tasto indietro di Android), il body rimarrebbe
+  // position:fixed e overflow:hidden, bloccando lo scroll in tutta l'app
+  // (e nascondendo il tasto save nei form). Si sblocca a ogni cambio pagina.
+  document.body.classList.remove('map-fullscreen-active');
+  document.body.style.top = '';
+
   const topbarTitle = document.getElementById('topbar-title');
   const topbarActions = document.getElementById('topbar-actions');
   const topbarBack = document.getElementById('topbar-back');

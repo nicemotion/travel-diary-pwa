@@ -13,7 +13,7 @@ import { createZip, readZip } from './zip.js';
 
 async function buildEntryPayload(entryId) {
   const entry = await getById('entries', entryId);
-  if (!entry) throw new Error('entry not found');
+  if (!entry) throw new Error('place not found');
   const [country, tagNames, annotations] = await Promise.all([
     getById('countries', entry.country_id),
     getEntryTagNames(entryId),
@@ -76,7 +76,7 @@ export async function exportEntryZip(entryId) {
 export async function importEntryPackage(file) {
   const entries = await readZip(file);
   const dataEntry = entries.find((e) => e.name === 'entry.json');
-  if (!dataEntry) throw new Error('entry.json not found — not a valid Travel Diary entry file');
+  if (!dataEntry) throw new Error('entry.json not found — not a valid Travel Diary place file');
 
   const payload = JSON.parse(new TextDecoder().decode(dataEntry.data));
   if (payload.format !== 'travel-diary-entry') throw new Error('unrecognized file format');
@@ -93,7 +93,7 @@ export async function commitImportedEntry(payload, photoByName, tripId) {
   const entryId = await add('entries', {
     trip_id: tripId,
     country_id: countryId,
-    title: payload.title || 'Imported entry',
+    title: payload.title || 'Imported place',
     city: payload.city || null,
     lat: payload.lat ?? null,
     lon: payload.lon ?? null,
@@ -238,7 +238,7 @@ export async function exportEntryHtml(entryId) {
       ${tagNames.length ? `<div class="tags">${tagNames.map((t) => `<span>#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
       ${mapLink}
       <p class="notes-label">notes (${annotations.length})</p>
-      ${annHtml.join('') || '<p class="meta">no notes for this entry.</p>'}
+      ${annHtml.join('') || '<p class="meta">no notes for this place.</p>'}
     </div>
     <div class="footer">shared from Travel Diary</div>
   </div>

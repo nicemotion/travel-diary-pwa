@@ -11,7 +11,7 @@ import { navigate, buildQuery } from './router.js';
 import { getLocation } from './geolocation.js';
 import { seedDemoData } from './seed.js';
 import { exportBackup, importBackup } from './backup.js';
-import { createOfflineTileLayer, createEnglishLabelsOverlay, planDownloadAroundPoints, downloadTiles } from './tiles.js';
+import { createOfflineTileLayer, planDownloadAroundPoints, downloadTiles } from './tiles.js';
 import { noteContentAdded, noteBackupCompleted, snoozeReminder, getReminderState } from './backupReminder.js';
 import { exportEntryZip, exportEntryHtml, exportCountryJson, shareOrDownload, importEntryPackage, commitImportedEntry } from './share.js';
 
@@ -195,7 +195,7 @@ function nearbyListHtml(entries, countryById, loc, radiusKm) {
     nearby = recent.map((e) => ({ entry: e, distance: null }));
   }
   if (!nearby.length) {
-    return { html: '<p class="empty-state">no entries yet. tap + to create one.</p>', usedFallback: false };
+    return { html: '<p class="empty-state">no places yet. tap + to create one.</p>', usedFallback: false };
   }
   const html = nearby.map((item) => {
     const c = countryById[item.entry.country_id];
@@ -433,7 +433,6 @@ export async function viewMap(params, query) {
       const mapEl = container.querySelector('#map-tab-map');
       const map = L.map(mapEl, { attributionControl: true }).setView([20, 0], 2);
       createOfflineTileLayer().addTo(map);
-      createEnglishLabelsOverlay().addTo(map); // TEST/PROVA — vedi tiles.js
 
       const wrapEl = container.querySelector('.leaflet-map-wrap');
       const fsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
@@ -524,7 +523,7 @@ export async function viewTripsList() {
       ${t.is_active ? '<span class="badge accent">ongoing</span>' : ''}
       <p class="title">${escapeHtml(t.name)}</p>
       <p class="meta">${escapeHtml(t.start_date || '')}${t.end_date ? ' &ndash; ' + escapeHtml(t.end_date) : ''}</p>
-      <div>${countrySet.map((c) => `<span class="badge country">${escapeHtml(c)}</span>`).join('')}<span class="badge">${tripEntries.length} entries</span></div>
+      <div>${countrySet.map((c) => `<span class="badge country">${escapeHtml(c)}</span>`).join('')}<span class="badge">${tripEntries.length} ${tripEntries.length === 1 ? 'place' : 'places'}</span></div>
     </a>`;
   }).join('');
 
@@ -594,7 +593,7 @@ export async function viewTripForm(params) {
         delBtn.addEventListener('click', async () => {
           const entries = await getAllByIndex('entries', 'trip_id', trip.id);
           const msg = entries.length
-            ? `Delete "${trip.name}" and all ${entries.length} of its entries (with their notes)? This cannot be undone.`
+            ? `Delete "${trip.name}" and all ${entries.length} of its places (with their notes)? This cannot be undone.`
             : `Delete "${trip.name}"? This cannot be undone.`;
           if (!confirm(msg)) return;
           for (const e of entries) await deleteEntryCascade(e.id);
@@ -643,7 +642,7 @@ export async function viewTripDetail(params, query) {
       ? `${escapeHtml(e.created_at)} &middot; ${e.city ? escapeHtml(e.city) + ', ' + escapeHtml(c?.name || '') : escapeHtml(c?.name || '')}`
       : escapeHtml(e.created_at);
     return groupHtml + `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)}</p><p class="meta">${meta}</p></a>`;
-  }).join('') || '<p class="empty-state">no entries in this trip.</p>';
+  }).join('') || '<p class="empty-state">no places in this trip.</p>';
 
   const body = `
     <div class="search-box">
@@ -656,7 +655,7 @@ export async function viewTripDetail(params, query) {
         <a href="#/trips/${tripId}${buildQuery({ sort: 'date' })}" class="badge ${sort !== 'location' ? 'accent' : ''}" style="text-decoration:none;">by date</a>
         <a href="#/trips/${tripId}${buildQuery({ sort: 'location' })}" class="badge ${sort === 'location' ? 'accent' : ''}" style="text-decoration:none;">by country/city</a>
       </div>
-      <p class="section-label">${entries.length} entries</p>
+      <p class="section-label">${entries.length} ${entries.length === 1 ? 'place' : 'places'}</p>
       ${listHtml}
       ${entries.some((e) => e.lat && e.lon) ? `
       <a href="#/map${buildQuery({ trip: tripId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
@@ -728,7 +727,7 @@ export async function viewTripTags(params) {
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   const body = rows.length
-    ? rows.map((r) => `<a href="#/trips/${tripId}${buildQuery({ q: r.name })}" class="card"><p class="title">#${escapeHtml(r.name)}</p><p class="meta">${r.count} entries</p></a>`).join('')
+    ? rows.map((r) => `<a href="#/trips/${tripId}${buildQuery({ q: r.name })}" class="card"><p class="title">#${escapeHtml(r.name)}</p><p class="meta">${r.count} ${r.count === 1 ? 'place' : 'places'}</p></a>`).join('')
     : '<p class="empty-state">no tags in this trip yet.</p>';
 
   return { title: `Tags &middot; ${trip ? trip.name : ''}`, body };
@@ -743,7 +742,7 @@ export async function viewCountriesList() {
   const sorted = [...countries].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   const body = `
     <p class="section-label">countries</p>
-    ${sorted.length ? sorted.map((c) => `<a href="#/countries/${c.id}" class="card"><p class="title">${escapeHtml(c.name)}</p><p class="meta">${countByCountry[c.id] || 0} entries</p></a>`).join('') : '<p class="empty-state">no countries yet.</p>'}
+    ${sorted.length ? sorted.map((c) => `<a href="#/countries/${c.id}" class="card"><p class="title">${escapeHtml(c.name)}</p><p class="meta">${countByCountry[c.id] || 0} ${(countByCountry[c.id] || 0) === 1 ? 'place' : 'places'}</p></a>`).join('') : '<p class="empty-state">no countries yet.</p>'}
     <p class="section-label">tags</p>
     <a href="#/tags" class="card"><p class="title">all tags</p></a>
   `;
@@ -782,7 +781,7 @@ export async function viewCountryDetail(params, query) {
       ? escapeHtml(e.created_at)
       : `${escapeHtml(e.created_at)} &middot; ${escapeHtml(tripById[e.trip_id]?.name || '')}`;
     return groupHtml + `<a href="#/entry/${e.id}" class="card"><p class="title">${escapeHtml(e.title)}</p><p class="meta">${meta}</p></a>`;
-  }).join('') || '<p class="empty-state">no entries in this country.</p>';
+  }).join('') || '<p class="empty-state">no places in this country.</p>';
 
   const body = `
     <div class="search-box">
@@ -795,7 +794,7 @@ export async function viewCountryDetail(params, query) {
         <a href="#/countries/${countryId}${buildQuery({ sort: 'date' })}" class="badge ${sort !== 'city' ? 'accent' : ''}" style="text-decoration:none;">by date</a>
         <a href="#/countries/${countryId}${buildQuery({ sort: 'city' })}" class="badge ${sort === 'city' ? 'accent' : ''}" style="text-decoration:none;">by city</a>
       </div>
-      <p class="section-label">${entries.length} entries &middot; all trips</p>
+      <p class="section-label">${entries.length} ${entries.length === 1 ? 'place' : 'places'} &middot; all trips</p>
       ${listHtml}
       ${entries.some((e) => e.lat && e.lon) ? `
       <a href="#/map${buildQuery({ country: countryId })}" class="btn btn-icon-text" style="text-decoration:none; display:flex; background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('map')} view on map</a>
@@ -858,7 +857,7 @@ export async function viewTagsList() {
       ? sorted.map((t) => `
         <div class="card tag-row" data-tag-id="${t.id}" data-tag-name="${escapeHtml(t.name)}" style="display:flex; align-items:center; gap:4px;">
           <a href="#/search${buildQuery({ q: t.name })}" style="flex:1; text-decoration:none; color:inherit; min-width:0;">
-            <p class="title">#${escapeHtml(t.name)}</p><p class="meta">${countByTag[t.id] || 0} entries</p>
+            <p class="title">#${escapeHtml(t.name)}</p><p class="meta">${countByTag[t.id] || 0} ${(countByTag[t.id] || 0) === 1 ? 'place' : 'places'}</p>
           </a>
           <button type="button" class="icon-btn" data-action="rename-tag" title="rename tag" aria-label="rename tag">${icon('edit')}</button>
           <button type="button" class="icon-btn danger" data-action="delete-tag" title="delete tag" aria-label="delete tag">${icon('trash')}</button>
@@ -896,7 +895,7 @@ export async function viewTagsList() {
             const row = btn.closest('.tag-row');
             const tagId = Number(row.dataset.tagId);
             const name = row.dataset.tagName;
-            if (!confirm(`Delete tag "#${name}"? It will be removed from all entries — the entries and their notes are kept.`)) return;
+            if (!confirm(`Delete tag "#${name}"? It will be removed from all places — the places and their notes are kept.`)) return;
             await deleteTag(tagId);
             await refresh();
           });
@@ -912,7 +911,7 @@ export async function viewTagsList() {
 export async function viewEntryDetail(params) {
   const entryId = Number(params.id);
   const entry = await getById('entries', entryId);
-  if (!entry) return { title: 'Entry', body: '<p class="empty-state">entry not found.</p>' };
+  if (!entry) return { title: 'Place', body: '<p class="empty-state">place not found.</p>' };
 
   const [country, trip, tagNames, annotations] = await Promise.all([
     getById('countries', entry.country_id),
@@ -957,14 +956,14 @@ export async function viewEntryDetail(params) {
 
   return {
     title: entry.title,
-    actions: `<a href="#/entry/${entryId}/edit" class="icon-btn" title="edit entry" aria-label="edit entry">${icon('edit')}</a>
-      <button data-action="delete-entry" class="icon-btn danger" title="delete entry" aria-label="delete entry">${icon('trash')}</button>`,
+    actions: `<a href="#/entry/${entryId}/edit" class="icon-btn" title="edit place" aria-label="edit place">${icon('edit')}</a>
+      <button data-action="delete-entry" class="icon-btn danger" title="delete place" aria-label="delete place">${icon('trash')}</button>`,
     body,
     mount(container) {
       const delBtn = document.getElementById('topbar-actions').querySelector('[data-action="delete-entry"]');
       if (delBtn) {
         delBtn.addEventListener('click', async () => {
-          if (!confirm('Delete this entry and all its notes?')) return;
+          if (!confirm('Delete this place and all its notes?')) return;
           await deleteEntryCascade(entryId);
           navigate('/');
         });
@@ -978,7 +977,7 @@ export async function viewEntryDetail(params) {
           shareZipBtn.textContent = 'preparing...';
           try {
             const { blob, filename } = await exportEntryZip(entryId);
-            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary entry: ${entry.title}` });
+            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary place: ${entry.title}` });
           } catch (err) {
             alert('Could not prepare the file: ' + err.message);
           } finally {
@@ -996,7 +995,7 @@ export async function viewEntryDetail(params) {
           shareHtmlBtn.textContent = 'preparing...';
           try {
             const { blob, filename } = await exportEntryHtml(entryId);
-            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary entry: ${entry.title}` });
+            await shareOrDownload(blob, filename, { title: entry.title, text: `Travel Diary place: ${entry.title}` });
           } catch (err) {
             alert('Could not prepare the file: ' + err.message);
           } finally {
@@ -1020,7 +1019,6 @@ export async function viewEntryDetail(params) {
         // after the body markup (with its CSS height) is inserted.
         const map = L.map(mapEl, { attributionControl: true }).setView([entry.lat, entry.lon], 15);
         createOfflineTileLayer().addTo(map);
-        createEnglishLabelsOverlay().addTo(map); // TEST/PROVA — vedi tiles.js
         L.marker([entry.lat, entry.lon], { icon: pinIcon }).addTo(map);
 
         const wrapEl = container.querySelector('.leaflet-map-wrap');
@@ -1071,17 +1069,23 @@ export async function viewEntryForm(params) {
 
       <label>country</label>
       <input type="text" name="country" id="country-input" required value="${escapeHtml(isEdit ? countryName : defaultCountry)}" placeholder="e.g. Thailand">
-      <p class="hint" id="country-hint">${!isEdit && defaultCountry ? '*prefilled from your last entry, editable if you moved' : ''}</p>
+      <p class="hint" id="country-hint">${!isEdit && defaultCountry ? '*prefilled from your last place, editable if you moved' : ''}</p>
 
       <label>city</label>
       <input type="text" name="city" id="city-input" value="${escapeHtml(isEdit ? cityValue : defaultCity)}" placeholder="e.g. Bangkok">
-      <p class="hint" id="city-hint">${!isEdit && defaultCity ? '*prefilled from your last entry, editable if you moved' : ''}</p>
+      <p class="hint" id="city-hint">${!isEdit && defaultCity ? '*prefilled from your last place, editable if you moved' : ''}</p>
 
       <label>tags (comma separated)</label>
       <div style="position:relative;">
         <input type="text" name="tags" id="tags-input" autocomplete="off" value="${escapeHtml(tagsValue)}" placeholder="restaurants, seafood">
         <div id="tag-suggestions" class="tag-suggestions"></div>
       </div>
+      <button type="button" id="tag-picker-toggle" class="btn-icon-text" style="background:var(--surface-muted); color:var(--text-dark); border:1px solid var(--border);">${icon('tag')} choose from existing tags</button>
+      <div id="tag-picker" class="tag-picker" style="display:none;">
+        <input type="text" id="tag-picker-filter" placeholder="filter tags" autocomplete="off">
+        <div id="tag-picker-list" class="tag-picker-list"></div>
+      </div>
+      ${hint('tap a tag to add or remove it — reusing existing tags avoids near-duplicates')}
 
       <label>location (gps)</label>
       <div style="display:flex; gap:8px;">
@@ -1105,7 +1109,7 @@ export async function viewEntryForm(params) {
   `;
 
   return {
-    title: isEdit ? 'Edit Entry' : 'New Entry',
+    title: isEdit ? 'Edit Place' : 'New Place',
     body,
     mount(container) {
       const form = container.querySelector('#entry-form');
@@ -1149,7 +1153,6 @@ export async function viewEntryForm(params) {
         initialLat != null && initialLon != null ? 15 : DEFAULT_ZOOM
       );
       createOfflineTileLayer().addTo(formMap);
-      createEnglishLabelsOverlay().addTo(formMap); // TEST/PROVA — vedi tiles.js
 
       const formWrapEl = container.querySelector('.leaflet-map-wrap');
       const formFsBtn = container.querySelector('.leaflet-map-wrap [data-fullscreen-btn]');
@@ -1257,7 +1260,66 @@ export async function viewEntryForm(params) {
         tagsInput.value = parts.join(',').split(',').map((p) => p.trim()).filter(Boolean).join(', ') + ', ';
         hideSugg();
         tagsInput.focus();
+        refreshPickerSelection();
       });
+
+      // ---- picker: all existing tags as tappable chips ----
+      // tapping a chip adds/removes that tag in the comma-separated input
+      // above, so the input stays the single source of truth (typing,
+      // suggestions and chips all edit the same field).
+      const pickerToggle = container.querySelector('#tag-picker-toggle');
+      const picker = container.querySelector('#tag-picker');
+      const pickerFilter = container.querySelector('#tag-picker-filter');
+      const pickerList = container.querySelector('#tag-picker-list');
+      let pickerLoaded = false;
+
+      function currentTagList() {
+        return tagsInput.value.split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean);
+      }
+      function refreshPickerSelection() {
+        if (!pickerLoaded) return;
+        const selected = new Set(currentTagList().map((t) => t.toLowerCase()));
+        pickerList.querySelectorAll('.tag-chip').forEach((chip) => {
+          chip.classList.toggle('selected', selected.has(chip.dataset.tag.toLowerCase()));
+        });
+      }
+      function applyPickerFilter() {
+        const q = pickerFilter.value.trim().toLowerCase();
+        pickerList.querySelectorAll('.tag-chip').forEach((chip) => {
+          chip.style.display = !q || chip.dataset.tag.toLowerCase().includes(q) ? '' : 'none';
+        });
+      }
+      async function loadPicker() {
+        const allTags = await getAll('tags');
+        allTags.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+        pickerList.innerHTML = allTags.length
+          ? allTags.map((t) => `<button type="button" class="tag-chip" data-tag="${escapeHtml(t.name)}">#${escapeHtml(t.name)}</button>`).join('')
+          : '<p class="empty-state" style="padding:8px 0; width:100%;">no tags yet — type one above to create it.</p>';
+        pickerLoaded = true;
+        refreshPickerSelection();
+      }
+
+      pickerToggle.addEventListener('click', async () => {
+        const opening = picker.style.display === 'none';
+        picker.style.display = opening ? 'block' : 'none';
+        if (opening) {
+          if (!pickerLoaded) await loadPicker();
+          else refreshPickerSelection();
+        }
+      });
+      pickerList.addEventListener('click', (e) => {
+        const chip = e.target.closest('.tag-chip');
+        if (!chip) return;
+        const tag = chip.dataset.tag;
+        const list = currentTagList();
+        const idx = list.findIndex((t) => t.toLowerCase() === tag.toLowerCase());
+        if (idx >= 0) list.splice(idx, 1);
+        else list.push(tag);
+        tagsInput.value = list.length ? list.join(', ') + ', ' : '';
+        refreshPickerSelection();
+      });
+      pickerFilter.addEventListener('input', applyPickerFilter);
+      tagsInput.addEventListener('input', refreshPickerSelection);
       document.addEventListener('click', (e) => {
         if (e.target !== tagsInput && !suggBox.contains(e.target)) hideSugg();
       });
@@ -1430,7 +1492,7 @@ export async function viewBackup() {
   const body = `
     <p class="section-label">what's stored right now</p>
     <div class="card">
-      <p class="meta">${summary.trips} trips &middot; ${summary.entries} entries &middot; ${summary.annotations} notes &middot; ${summary.tags} tags</p>
+      <p class="meta">${summary.trips} trips &middot; ${summary.entries} places &middot; ${summary.annotations} notes &middot; ${summary.tags} tags</p>
     </div>
 
     <p class="section-label" style="margin-top:20px;">export</p>
@@ -1482,16 +1544,21 @@ export async function viewBackup() {
 
 // ---------- Tools ----------
 
+// versione mostrata nella pagina Tools: tenere allineata con CACHE_NAME
+// ('travel-diary-vN') in service-worker.js a ogni modifica
+const APP_VERSION = 17;
+
 export async function viewTools() {
   const body = `
     <p class="section-label">data</p>
     <a href="#/backup" class="card"><p class="title">backup &amp; restore</p></a>
     <a href="#/tools/export-country" class="card"><p class="title">export a single country</p></a>
-    <a href="#/import" class="card"><p class="title">import shared entry</p></a>
+    <a href="#/import" class="card"><p class="title">import shared place</p></a>
     <p class="section-label">tags</p>
     <a href="#/tags" class="card"><p class="title">edit / delete tags</p></a>
     <p class="section-label">help</p>
     <a href="./Trip_Diary_quick-guide.pdf" target="_blank" class="card"><p class="title">quick guide (english pdf)</p></a>
+    <p class="app-version"><strong>Travel Diary</strong><span>v ${APP_VERSION}</span></p>
   `;
   return { title: 'Tools', body };
 }
@@ -1507,7 +1574,7 @@ export async function viewExportCountry() {
       ${sorted.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}
     </select>
     <button type="button" id="export-country-btn" class="btn-icon-text">${icon('external')} export as json</button>
-    ${hint('creates one .json file with every entry, its tags and note text for that country. photos are not included — notes that had one are flagged as such.')}
+    ${hint('creates one .json file with every place, its tags and note text for that country. photos are not included — notes that had one are flagged as such.')}
   ` : '<p class="empty-state">no countries yet.</p>';
 
   return {
@@ -1544,9 +1611,9 @@ export async function viewImportEntry() {
   trips.sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''));
 
   const body = `
-    <p class="section-label">import a shared entry</p>
+    <p class="section-label">import a shared place</p>
     <input type="file" id="import-file-input" accept=".zip">
-    ${hint('choose a Travel Diary entry file (.zip) that someone shared with you.')}
+    ${hint('choose a Travel Diary place file (.zip) that someone shared with you.')}
 
     <div id="import-preview" style="display:none; margin-top:14px;">
       <div class="card" id="import-summary"></div>
@@ -1558,12 +1625,12 @@ export async function viewImportEntry() {
       </select>
       <input type="text" id="import-new-trip-name" placeholder="new trip name" style="display:none; margin-top:8px;">
 
-      <button type="button" id="import-confirm-btn">import entry</button>
+      <button type="button" id="import-confirm-btn">import place</button>
     </div>
   `;
 
   return {
-    title: 'Import Entry',
+    title: 'Import Place',
     body,
     mount(container) {
       const fileInput = container.querySelector('#import-file-input');
@@ -1621,7 +1688,7 @@ export async function viewImportEntry() {
         } catch (err) {
           alert('Import failed: ' + err.message);
           confirmBtn.disabled = false;
-          confirmBtn.textContent = 'import entry';
+          confirmBtn.textContent = 'import place';
         }
       });
     },
